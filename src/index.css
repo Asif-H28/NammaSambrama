@@ -80,179 +80,63 @@
   --p-nonveg: #8b3a3a;
 }
 
-/* ── Theme: Royal Saffron ─────────────────────────────────────────────── */
-[data-theme='royal'] {
-  --color-bg: #12132b;
-  --color-surface: #1e2040;
-  --color-text: #e9e9ed;
-  --color-accent: #f0b429;
-  --color-accent-2: #e0648b;
-  --color-accent-100: #fff8e6;
-  --color-accent-200: #ffeec2;
-  --color-accent-300: #ffe2a3;
-  --color-accent-400: #ffd166;
-  --color-accent-500: #f0b429;
-  --color-accent-600: #c9931d;
-  --color-accent-700: #a67415;
-  --color-accent-800: #6d4b0d;
-  --color-accent-900: #3a2807;
-  --color-accent-2-100: #ffeef4;
-  --color-accent-2-800: #6d2440;
-  --color-neutral-900: #1b1c33;
-  --color-section: #2a1d4d;
-  --color-divider: color-mix(in srgb, #ffe2a3 18%, transparent);
+/* ── Theme: Nocturne Blurple — light mode ────────────────────────────── */
+[data-theme='blurple'][data-mode='light'] {
+  --color-bg: #f4f3fb;
+  --color-surface: #ffffff;
+  --color-text: #201f2e;
+  --color-accent: #6f61c2;
+  --color-accent-2: #8579cf;
+  --color-divider: color-mix(in srgb, #201f2e 14%, transparent);
 
-  --color-neutral-100: #f3f5fe;
-  --color-neutral-200: #e4e7f5;
-  --color-neutral-300: #cfd3e5;
-  --color-neutral-400: #b2b6ca;
-  --color-neutral-500: #9397ab;
-  --color-neutral-600: #75798c;
-  --color-neutral-700: #595d6c;
-  --color-neutral-800: #3f424d;
+  --color-neutral-100: #292b31;
+  --color-neutral-200: #3f424d;
+  --color-neutral-300: #595d6c;
+  --color-neutral-400: #75798c;
+  --color-neutral-500: #63677a;
+  --color-neutral-600: #9397ab;
+  --color-neutral-700: #b2b6ca;
+  --color-neutral-800: #cfd3e5;
+  --color-neutral-900: #e4e7f5;
 
-  --t-side-a: #1c1a3c;
-  --t-side-b: #0d0e20;
-  --t-scrim: rgba(13, 14, 32, .78);
-  --t-well: #191a30;
-  --t-danger: #f5a3a3;
-  --t-danger-fg: #ffd6d6;
-  --t-danger-bd: #b05656;
-  --t-veg: #8ad18f;
-  --t-veg-fg: #d6f0d8;
-  --t-nonveg: #e59a9a;
+  --color-accent-100: #2b2741;
+  --color-accent-200: #423a6a;
+  --color-accent-300: #5d5294;
+  --color-accent-400: #796cbf;
+  --color-accent-500: #6f61c2;
+  --color-accent-600: #8579cf;
+  --color-accent-700: #b5abfc;
+  --color-accent-800: #d2cefd;
+  --color-accent-900: #f5f4ff;
 
-  --p-bg: #fcf3e3;
-  --p-card: #fffdf8;
-  --p-text: #221610;
-  --p-muted: #7a6552;
-  --p-deep: #2a1052;
-  --p-deeper: #180a33;
-  --p-deep-2: #452073;
-  --p-gold: #f0b429;
-  --p-gold-dark: #b57d12;
-  --p-gold-light: #ffd87a;
-  --p-rose: #e0648b;
-  --p-art-a: #ffe9c2;
-  --p-art-b: #f4c2d4;
-  --p-veg: #2e7d32;
-  --p-nonveg: #8b3a3a;
-}
+  --color-accent-2-100: #2b2741;
+  --color-accent-2-800: #e7e5fe;
+  --color-section: #ece9fb;
 
-/* ── Theme: Peacock Emerald ───────────────────────────────────────────── */
-[data-theme='peacock'] {
-  --color-bg: #0b1a1e;
-  --color-surface: #12292e;
-  --color-text: #e9e9ed;
-  --color-accent: #2fd3ac;
-  --color-accent-2: #f2a154;
-  --color-accent-100: #eafff9;
-  --color-accent-200: #cbfaee;
-  --color-accent-300: #a8f0dd;
-  --color-accent-400: #6ee3c4;
-  --color-accent-500: #2fd3ac;
-  --color-accent-600: #1fa98a;
-  --color-accent-700: #14806a;
-  --color-accent-800: #0d5748;
-  --color-accent-900: #0a3a31;
-  --color-accent-2-100: #fff3e6;
-  --color-accent-2-800: #6b4118;
-  --color-neutral-900: #0f2429;
-  --color-section: #103b4a;
-  --color-divider: color-mix(in srgb, #a8f0dd 16%, transparent);
+  --t-side-a: #e7e4f7;
+  --t-side-b: #f4f3fb;
+  --t-scrim: rgba(244, 243, 251, .72);
+  --t-well: #edecf7;
+  --t-danger: #b23c3c;
+  --t-danger-fg: #7a2424;
+  --t-danger-bd: #d99b9b;
+  --t-veg: #2e7d32;
+  --t-veg-fg: #1f5522;
+  --t-nonveg: #9a3a3a;
 
-  --color-neutral-100: #f3f5fe;
-  --color-neutral-200: #e4e7f5;
-  --color-neutral-300: #cfd3e5;
-  --color-neutral-400: #b2b6ca;
-  --color-neutral-500: #9397ab;
-  --color-neutral-600: #75798c;
-  --color-neutral-700: #595d6c;
-  --color-neutral-800: #3f424d;
-
-  --t-side-a: #0f272c;
-  --t-side-b: #071316;
-  --t-scrim: rgba(7, 19, 22, .78);
-  --t-well: #0e2226;
-  --t-danger: #f0a59a;
-  --t-danger-fg: #ffd8d1;
-  --t-danger-bd: #a8574a;
-  --t-veg: #7ede9f;
-  --t-veg-fg: #d2f5de;
-  --t-nonveg: #eda093;
-
-  --p-bg: #f1f7f3;
-  --p-card: #ffffff;
-  --p-text: #10231f;
-  --p-muted: #5d7570;
-  --p-deep: #0a3b3a;
-  --p-deeper: #04211f;
-  --p-deep-2: #12574f;
-  --p-gold: #c9a227;
-  --p-gold-dark: #8f7218;
+  --p-bg: #fbf1de;
+  --p-card: #fffdf7;
+  --p-text: #241c14;
+  --p-muted: #6b5f52;
+  --p-deep: #0f1c3f;
+  --p-deeper: #081128;
+  --p-deep-2: #1b2e5c;
+  --p-gold: #d4af37;
+  --p-gold-dark: #a9812e;
   --p-gold-light: #f0d77b;
-  --p-rose: #e0715f;
-  --p-art-a: #dff2ea;
-  --p-art-b: #a9dcc9;
-  --p-veg: #1f6b3a;
-  --p-nonveg: #8b3a3a;
-}
-
-/* ── Theme: Merlot & Rose Gold ────────────────────────────────────────── */
-[data-theme='merlot'] {
-  --color-bg: #1b0f14;
-  --color-surface: #2c1a20;
-  --color-text: #e9e9ed;
-  --color-accent: #ff8f6b;
-  --color-accent-2: #d9a24b;
-  --color-accent-100: #fff2ee;
-  --color-accent-200: #ffe1d8;
-  --color-accent-300: #ffd0c1;
-  --color-accent-400: #ffb199;
-  --color-accent-500: #ff8f6b;
-  --color-accent-600: #d16a48;
-  --color-accent-700: #a8502f;
-  --color-accent-800: #73351f;
-  --color-accent-900: #4a2214;
-  --color-accent-2-100: #fff6e4;
-  --color-accent-2-800: #6b4c14;
-  --color-neutral-900: #241419;
-  --color-section: #4a1c34;
-  --color-divider: color-mix(in srgb, #ffd0c1 16%, transparent);
-
-  --color-neutral-100: #f3f5fe;
-  --color-neutral-200: #e4e7f5;
-  --color-neutral-300: #cfd3e5;
-  --color-neutral-400: #b2b6ca;
-  --color-neutral-500: #9397ab;
-  --color-neutral-600: #75798c;
-  --color-neutral-700: #595d6c;
-  --color-neutral-800: #3f424d;
-
-  --t-side-a: #2a1620;
-  --t-side-b: #150a0f;
-  --t-scrim: rgba(21, 10, 15, .78);
-  --t-well: #241419;
-  --t-danger: #f2a0a0;
-  --t-danger-fg: #ffd6d6;
-  --t-danger-bd: #a85555;
-  --t-veg: #8ecf95;
-  --t-veg-fg: #d8f0da;
-  --t-nonveg: #e79a9a;
-
-  --p-bg: #fdf2ee;
-  --p-card: #fffaf7;
-  --p-text: #2a1315;
-  --p-muted: #7d5c58;
-  --p-deep: #5c1030;
-  --p-deeper: #380818;
-  --p-deep-2: #7d1f42;
-  --p-gold: #d9a24b;
-  --p-gold-dark: #a2762b;
-  --p-gold-light: #f3d08a;
-  --p-rose: #d1567e;
-  --p-art-a: #ffe4d6;
-  --p-art-b: #f0bccb;
+  --p-rose: #c98098;
+  --p-art-a: #f3e4c4;
+  --p-art-b: #e7b8c2;
   --p-veg: #2e7d32;
   --p-nonveg: #8b3a3a;
 }

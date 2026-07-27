@@ -1,6 +1,10 @@
+import { useMemo } from 'react'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
-import { goScreen, setDiet, setPublicFilter, openVideo } from '@/features/ui/uiSlice'
+import { setDiet, setPublicFilter, openVideo } from '@/features/ui/uiSlice'
 import { ART, artFor, EventIcon } from '@/data/icons'
+import { photoForEventType } from '@/data/eventTypePhotos'
+import { usePublicLanguage } from '@/hooks/usePublicLanguage'
+import { PublicHeader } from '@/components/layout/PublicHeader'
 
 const pill = (active: boolean) =>
   ({
@@ -13,7 +17,7 @@ const pill = (active: boolean) =>
     color: active ? 'var(--p-gold-light)' : 'var(--p-deep)',
   }) as React.CSSProperties
 
-export function PublicSite() {
+export function PublicSite({ standalone = false }: { standalone?: boolean }) {
   const dispatch = useAppDispatch()
   const events = useAppSelector((s) => s.catalog.events)
   const foods = useAppSelector((s) => s.catalog.foods)
@@ -34,19 +38,31 @@ export function PublicSite() {
     })
     .filter((c) => c.ds.length)
 
+  const dynamicTexts = useMemo(() => {
+    const texts: string[] = []
+    events.forEach((e) => {
+      if (e.eventType) texts.push(e.eventType)
+      if (e.eventTitle) texts.push(e.eventTitle)
+      if (e.eventDescription) texts.push(e.eventDescription)
+      e.foodMenu.forEach((l) => l.text && texts.push(l.text))
+      e.eventDesign.forEach((l) => l.text && texts.push(l.text))
+    })
+    foods.forEach((c) => {
+      if (c.foodType) texts.push(c.foodType)
+      c.dishlist.forEach((d) => {
+        if (d.dishName) texts.push(d.dishName)
+        if (d.dishDescription) texts.push(d.dishDescription)
+      })
+    })
+    return texts
+  }, [events, foods])
+
+  const { lang, setLang, t } = usePublicLanguage(dynamicTexts)
+
   return (
-    <div className="animate-rise" style={{ margin: '-26px -32px -70px' }}>
-      <div
-        className="flex items-center gap-[10px] flex-wrap text-[12px]"
-        style={{ padding: '9px 18px', background: '#1b1e2f', borderBottom: '1px solid var(--color-divider)' }}
-      >
-        <span className="rounded-full" style={{ width: 7, height: 7, background: 'var(--t-veg)' }} />
-        <span>Live customer site</span>
-        <span className="text-muted">nammasambhrama.in — reflects everything published in admin</span>
-        <button className="btn btn-ghost ml-auto" onClick={() => dispatch(goScreen('events'))}>
-          Back to admin
-        </button>
-      </div>
+    <>
+    <div className="animate-rise" style={standalone ? undefined : { margin: '-26px -32px -70px' }}>
+      <PublicHeader lang={lang} onLangChange={setLang} />
 
       <div style={{ background: 'var(--p-bg)', color: 'var(--p-text)', fontFamily: "'Mukta',sans-serif" }}>
         <header
@@ -76,40 +92,45 @@ export function PublicSite() {
               style={{ margin: '10px 0 16px', font: "700 clamp(20px,3.4vw,28px)/1 'Playfair Display',serif", letterSpacing: '.28em', color: 'var(--p-bg)' }}
             >
               <span style={{ height: 1, width: 44, background: 'var(--p-gold)', opacity: 0.7 }} />
-              EVENTS
+              {lang === 'kn' ? 'ಈವೆಂಟ್‌ಗಳು' : 'EVENTS'}
               <span style={{ height: 1, width: 44, background: 'var(--p-gold)', opacity: 0.7 }} />
             </div>
             <p className="m-0" style={{ font: "700 clamp(19px,2.6vw,24px)/1.3 'Dancing Script',cursive", color: 'var(--p-gold-light)' }}>
-              Making Every Celebration Memorable
+              {lang === 'kn' ? 'ಪ್ರತಿಯೊಂದು ಆಚರಣೆಯನ್ನೂ ಸ್ಮರಣೀಯಗೊಳಿಸುವುದು' : 'Making Every Celebration Memorable'}
             </p>
           </div>
         </header>
 
         <section className="mx-auto" style={{ maxWidth: 1180, padding: '40px 24px 8px' }}>
           <p className="text-center uppercase" style={{ margin: '0 0 6px', font: "700 13px/1 'Playfair Display',serif", letterSpacing: '.18em', color: 'var(--p-deep)' }}>
-            What we plan
+            {lang === 'kn' ? 'ನಾವು ಯೋಜಿಸುವುದು' : 'What we plan'}
           </p>
           <p className="text-center text-[14px]" style={{ margin: '0 0 26px', color: 'var(--p-muted)' }}>
-            Every event type below is managed by our team — photos, menus and décor, all kept current.
+            {lang === 'kn'
+              ? 'ಕೆಳಗಿನ ಪ್ರತಿಯೊಂದು ಈವೆಂಟ್ ಪ್ರಕಾರವನ್ನು ನಮ್ಮ ತಂಡ ನಿರ್ವಹಿಸುತ್ತದೆ — ಫೋಟೋಗಳು, ಮೆನುಗಳು ಮತ್ತು ಅಲಂಕಾರ, ಎಲ್ಲವೂ ಪ್ರಸ್ತುತವಾಗಿ.'
+              : 'Every event type below is managed by our team — photos, menus and décor, all kept current.'}
           </p>
           <div className="flex justify-center flex-wrap gap-[9px] mb-[24px]">
             <button style={pill(publicFilter === 'all')} onClick={() => dispatch(setPublicFilter('all'))}>
-              All Events
+              {lang === 'kn' ? 'ಎಲ್ಲಾ ಈವೆಂಟ್‌ಗಳು' : 'All Events'}
             </button>
-            {types.map((t) => (
-              <button key={t} style={pill(publicFilter === t)} onClick={() => dispatch(setPublicFilter(t))}>
-                {t}
+            {types.map((ty) => (
+              <button key={ty} style={pill(publicFilter === ty)} onClick={() => dispatch(setPublicFilter(ty))}>
+                {t(ty)}
               </button>
             ))}
           </div>
 
           <div className="grid gap-6" style={{ gridTemplateColumns: 'repeat(auto-fit,minmax(310px,1fr))' }}>
             {publicList.map((e) => {
+              const typePhoto = photoForEventType(e.eventType)
               const artStyle = e.eventImage
                 ? `center/cover no-repeat url(${e.eventImage})`
-                : e.eventIcon
-                  ? ART[e.eventIcon]
-                  : artFor(e.eventTitle)
+                : typePhoto
+                  ? `center/cover no-repeat url(${typePhoto})`
+                  : e.eventIcon
+                    ? ART[e.eventIcon]
+                    : artFor(e.eventTitle)
               return (
                 <article
                   key={e.id}
@@ -140,7 +161,7 @@ export function PublicSite() {
                           letterSpacing: '.06em',
                         }}
                       >
-                        ▶ Watch film
+                        ▶ {lang === 'kn' ? 'ಚಿತ್ರ ನೋಡಿ' : 'Watch film'}
                       </button>
                     )}
                   </div>
@@ -163,13 +184,13 @@ export function PublicSite() {
                           color: 'var(--p-rose)',
                         }}
                       >
-                        {e.eventType}
+                        {t(e.eventType)}
                       </span>
                       <h3 style={{ margin: 0, font: "700 18.5px/1.25 'Playfair Display',serif", color: 'var(--p-deep)' }}>
-                        {e.eventTitle}
+                        {t(e.eventTitle)}
                       </h3>
                       <p style={{ margin: '5px 0 0', fontSize: 13, lineHeight: 1.5, color: 'var(--p-muted)' }}>
-                        {e.eventDescription}
+                        {t(e.eventDescription)}
                       </p>
                     </div>
                   </div>
@@ -179,7 +200,7 @@ export function PublicSite() {
                   >
                     <div style={{ padding: '15px 18px 18px' }}>
                       <p className="uppercase" style={{ margin: '0 0 8px', font: "600 11px/1 'Inter',sans-serif", letterSpacing: '.08em', color: 'var(--p-muted)' }}>
-                        Food
+                        {lang === 'kn' ? 'ಆಹಾರ' : 'Food'}
                       </p>
                       <ul className="list-none m-0 p-0 flex flex-col gap-[6px]">
                         {e.foodMenu.map((line) => (
@@ -188,7 +209,7 @@ export function PublicSite() {
                               className="absolute rounded-full"
                               style={{ left: 0, top: 6, width: 5, height: 5, background: 'var(--p-rose)' }}
                             />
-                            {line.text}
+                            {t(line.text)}
                           </li>
                         ))}
                       </ul>
@@ -197,7 +218,7 @@ export function PublicSite() {
                       style={{ padding: '15px 18px 18px', borderLeft: '1px solid color-mix(in srgb,var(--p-deep) 10%,transparent)' }}
                     >
                       <p className="uppercase" style={{ margin: '0 0 8px', font: "600 11px/1 'Inter',sans-serif", letterSpacing: '.08em', color: 'var(--p-muted)' }}>
-                        Design
+                        {lang === 'kn' ? 'ವಿನ್ಯಾಸ' : 'Design'}
                       </p>
                       <ul className="list-none m-0 p-0 flex flex-col gap-[6px]">
                         {e.eventDesign.map((line) => (
@@ -206,7 +227,7 @@ export function PublicSite() {
                               className="absolute rounded-full"
                               style={{ left: 0, top: 6, width: 5, height: 5, background: 'var(--p-gold-dark)' }}
                             />
-                            {line.text}
+                            {t(line.text)}
                           </li>
                         ))}
                       </ul>
@@ -220,23 +241,23 @@ export function PublicSite() {
 
         <section className="mx-auto" style={{ maxWidth: 1180, padding: '44px 24px 10px' }}>
           <p className="text-center uppercase" style={{ margin: '0 0 6px', font: "700 13px/1 'Playfair Display',serif", letterSpacing: '.18em', color: 'var(--p-deep)' }}>
-            Our food menu
+            {lang === 'kn' ? 'ನಮ್ಮ ಆಹಾರ ಮೆನು' : 'Our food menu'}
           </p>
           <p className="text-center text-[14px]" style={{ margin: '0 0 22px', color: 'var(--p-muted)' }}>
-            Pure veg and non-veg, all catered in-house.
+            {lang === 'kn' ? 'ಶುದ್ಧ ಸಸ್ಯಾಹಾರಿ ಮತ್ತು ಮಾಂಸಾಹಾರಿ, ಎಲ್ಲವೂ ಮನೆಯಲ್ಲಿಯೇ ತಯಾರಿಸಲಾಗಿದೆ.' : 'Pure veg and non-veg, all catered in-house.'}
           </p>
           <div className="flex justify-center gap-[9px] mb-[28px]">
             {[
-              { key: 'all', label: 'All Items' },
-              { key: 'veg', label: 'Pure Veg' },
-              { key: 'nonveg', label: 'Non-Veg' },
+              { key: 'all', label: 'All Items', kn: 'ಎಲ್ಲಾ ಐಟಂಗಳು' },
+              { key: 'veg', label: 'Pure Veg', kn: 'ಶುದ್ಧ ಸಸ್ಯಾಹಾರಿ' },
+              { key: 'nonveg', label: 'Non-Veg', kn: 'ಮಾಂಸಾಹಾರಿ' },
             ].map((d) => (
               <button
                 key={d.key}
                 style={pill(diet === d.key)}
                 onClick={() => dispatch(setDiet(d.key as 'all' | 'veg' | 'nonveg'))}
               >
-                {d.label}
+                {lang === 'kn' ? d.kn : d.label}
               </button>
             ))}
           </div>
@@ -257,10 +278,10 @@ export function PublicSite() {
                   />
                   <div>
                     <h3 style={{ margin: 0, font: "700 19px/1.2 'Playfair Display',serif", color: 'var(--p-deep)' }}>
-                      {cat.foodType}
+                      {t(cat.foodType)}
                     </h3>
                     <p style={{ margin: '2px 0 0', fontSize: 12.5, color: 'var(--p-muted)' }}>
-                      {cat.ds.length} dishes available
+                      {lang === 'kn' ? `${cat.ds.length} ಭಕ್ಷ್ಯಗಳು ಲಭ್ಯವಿದೆ` : `${cat.ds.length} dishes available`}
                     </p>
                   </div>
                 </div>
@@ -298,11 +319,11 @@ export function PublicSite() {
                             }}
                           />
                           <span className="font-semibold text-[13.5px]" style={{ color: 'var(--p-text)' }}>
-                            {d.dishName}
+                            {t(d.dishName)}
                           </span>
                         </div>
                         <p style={{ margin: '2px 0 0', fontSize: 11.5, lineHeight: 1.4, color: 'var(--p-muted)' }}>
-                          {d.dishDescription}
+                          {t(d.dishDescription)}
                         </p>
                       </div>
                     </div>
@@ -318,16 +339,44 @@ export function PublicSite() {
           style={{ marginTop: 46, background: 'linear-gradient(160deg,var(--p-deeper),var(--p-deep))', padding: '34px 24px 30px' }}
         >
           <p style={{ margin: '0 0 6px', font: "700 15px/1.4 'Playfair Display',serif", color: 'var(--p-gold-light)' }}>
-            N N Complex, Opposite Polar Bear, Vidyanagar, Davangere – 577005
+            {lang === 'kn'
+              ? 'ಎನ್ ಎನ್ ಕಾಂಪ್ಲೆಕ್ಸ್, ಪೋಲಾರ್ ಬೇರ್ ಎದುರು, ವಿದ್ಯಾನಗರ, ದಾವಣಗೆರೆ – 577005'
+              : 'N N Complex, Opposite Polar Bear, Vidyanagar, Davangere – 577005'}
           </p>
           <p className="m-0" style={{ fontSize: 13.5, color: 'var(--p-bg)' }}>
-            Call or WhatsApp for bookings and free consultation
+            {lang === 'kn' ? 'ಬುಕಿಂಗ್ ಮತ್ತು ಉಚಿತ ಸಮಾಲೋಚನೆಗಾಗಿ ಕರೆ ಅಥವಾ ವಾಟ್ಸಾಪ್ ಮಾಡಿ' : 'Call or WhatsApp for bookings and free consultation'}
           </p>
           <p style={{ margin: '22px 0 0', font: "700 20px/1 'Dancing Script',cursive", color: 'var(--p-gold-light)' }}>
-            Your Dream Event, Our Perfect Planning!
+            {lang === 'kn' ? 'ನಿಮ್ಮ ಕನಸಿನ ಆಚರಣೆ, ನಮ್ಮ ಪರಿಪೂರ್ಣ ಯೋಜನೆ!' : 'Your Dream Event, Our Perfect Planning!'}
           </p>
         </footer>
       </div>
     </div>
+
+      <a
+        href="/book"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center gap-[8px]"
+        style={{
+          position: 'fixed',
+          right: 22,
+          bottom: 22,
+          zIndex: 40,
+          padding: '14px 20px',
+          borderRadius: 999,
+          background: 'linear-gradient(150deg,var(--p-gold),var(--p-gold-dark))',
+          color: 'var(--p-deeper)',
+          font: "700 14px/1 'Inter',sans-serif",
+          boxShadow: '0 10px 26px -8px rgba(0,0,0,.5)',
+          textDecoration: 'none',
+        }}
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z" />
+        </svg>
+        {lang === 'kn' ? 'ಈವೆಂಟ್ ಬುಕ್ ಮಾಡಿ' : 'Book an Event'}
+      </a>
+    </>
   )
 }

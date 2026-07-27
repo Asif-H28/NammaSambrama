@@ -2,7 +2,7 @@ import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
 import { SEED_EVENTS, SEED_FOODS } from '@/data/seed'
 import type { EventType, FoodCategory } from '@/types'
 
-interface CatalogState {
+export interface CatalogState {
   events: EventType[]
   foods: FoodCategory[]
 }

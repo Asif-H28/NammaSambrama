@@ -1,4 +1,5 @@
-export type ThemeKey = 'blurple' | 'royal' | 'peacock' | 'merlot'
+export type ThemeKey = 'blurple'
+export type ThemeMode = 'light' | 'dark'
 export type Layout = 'stacked' | 'split' | 'steps'
 export type FormSection = 'basics' | 'media' | 'food' | 'design'
 export type Screen =
@@ -50,4 +51,21 @@ export interface FoodCategory {
   foodType: string
   foodtypeimage: string
   dishlist: Dish[]
+}
+
+export interface BookingCustomItem {
+  id: string
+  categoryId: string
+  name: string
+}
+
+export interface BookingState {
+  step: 'type' | 'menu' | 'review'
+  eventTypeId: string
+  customEventName: string
+  selectedDishIds: string[]
+  customItems: BookingCustomItem[]
+  contactName: string
+  contactPhone: string
+  contactNotes: string
 }

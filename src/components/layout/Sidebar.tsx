@@ -1,14 +1,8 @@
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
-import { goScreen, setTheme } from '@/features/ui/uiSlice'
-import type { ThemeKey } from '@/types'
+import { goScreen } from '@/features/ui/uiSlice'
 import { cn } from '@/lib/utils'
 
-const THEME_LIST: { key: ThemeKey; name: string; dot: string }[] = [
-  { key: 'blurple', name: 'Nocturne Blurple', dot: 'linear-gradient(135deg,#9184d9 50%,#2b2741 50%)' },
-  { key: 'royal', name: 'Royal Saffron', dot: 'linear-gradient(135deg,#f0b429 50%,#2a1052 50%)' },
-  { key: 'peacock', name: 'Peacock Emerald', dot: 'linear-gradient(135deg,#2fd3ac 50%,#0a3b3a 50%)' },
-  { key: 'merlot', name: 'Merlot & Rose Gold', dot: 'linear-gradient(135deg,#ff8f6b 50%,#5c1030 50%)' },
-]
+const THEME = { name: 'Nocturne Blurple', dot: 'linear-gradient(135deg,#9184d9 50%,#2b2741 50%)' }
 
 const NAV_ITEMS: { screen: 'dashboard' | 'events' | 'foods' | 'public'; label: string; matches: string[] }[] = [
   { screen: 'dashboard', label: 'Dashboard', matches: ['dashboard'] },
@@ -20,9 +14,7 @@ const NAV_ITEMS: { screen: 'dashboard' | 'events' | 'foods' | 'public'; label: s
 export function Sidebar() {
   const dispatch = useAppDispatch()
   const screen = useAppSelector((s) => s.ui.screen)
-  const theme = useAppSelector((s) => s.ui.theme)
   const showPicker = useAppSelector((s) => s.ui.showThemePicker)
-  const themeRec = THEME_LIST.find((t) => t.key === theme) ?? THEME_LIST[0]
 
   return (
     <aside
@@ -59,15 +51,27 @@ export function Sidebar() {
       </div>
 
       <nav className="app-nav flex flex-col gap-[3px]">
-        {NAV_ITEMS.map((item) => (
-          <button
-            key={item.screen}
-            onClick={() => dispatch(goScreen(item.screen))}
-            className={cn('nav-item', item.matches.includes(screen) && 'is-active')}
-          >
-            {item.label}
-          </button>
-        ))}
+        {NAV_ITEMS.map((item) =>
+          item.screen === 'public' ? (
+            <a
+              key={item.screen}
+              href="/public"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={cn('nav-item', item.matches.includes(screen) && 'is-active')}
+            >
+              {item.label}
+            </a>
+          ) : (
+            <button
+              key={item.screen}
+              onClick={() => dispatch(goScreen(item.screen))}
+              className={cn('nav-item', item.matches.includes(screen) && 'is-active')}
+            >
+              {item.label}
+            </button>
+          ),
+        )}
       </nav>
 
       {showPicker && (
@@ -82,27 +86,22 @@ export function Sidebar() {
             Colour theme
           </div>
           <div className="flex gap-[7px] flex-wrap">
-            {THEME_LIST.map((t) => (
-              <button
-                key={t.key}
-                title={t.name}
-                onClick={() => dispatch(setTheme(t.key))}
-                style={{
-                  width: 28,
-                  height: 28,
-                  borderRadius: 9,
-                  cursor: 'pointer',
-                  background: t.dot,
-                  border: `2px solid ${theme === t.key ? 'var(--color-accent)' : 'transparent'}`,
-                  boxShadow:
-                    'var(--color-divider) 0 0 0 1px' +
-                    (theme === t.key ? ', color-mix(in srgb,var(--color-accent) 22%,transparent) 0 0 0 4px' : ''),
-                }}
-              />
-            ))}
+            <button
+              title={THEME.name}
+              style={{
+                width: 28,
+                height: 28,
+                borderRadius: 9,
+                cursor: 'default',
+                background: THEME.dot,
+                border: '2px solid var(--color-accent)',
+                boxShadow:
+                  'var(--color-divider) 0 0 0 1px, color-mix(in srgb,var(--color-accent) 22%,transparent) 0 0 0 4px',
+              }}
+            />
           </div>
           <div className="text-[11.5px] leading-tight" style={{ color: 'var(--color-neutral-400)' }}>
-            {themeRec.name}
+            {THEME.name}
           </div>
         </div>
       )}

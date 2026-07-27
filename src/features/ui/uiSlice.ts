@@ -1,5 +1,5 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
-import type { FormSection, Layout, Screen, ThemeKey } from '@/types'
+import type { FormSection, Layout, Screen, ThemeKey, ThemeMode } from '@/types'
 
 interface VideoState {
   url: string
@@ -11,6 +11,7 @@ interface UiState {
   layout: Layout
   section: FormSection
   theme: ThemeKey
+  mode: ThemeMode
   showThemePicker: boolean
   query: string
   diet: 'all' | 'veg' | 'nonveg'
@@ -26,6 +27,7 @@ const initialState: UiState = {
   layout: 'steps',
   section: 'basics',
   theme: 'blurple',
+  mode: 'dark',
   showThemePicker: true,
   query: '',
   diet: 'all',
@@ -54,6 +56,9 @@ const uiSlice = createSlice({
     },
     setTheme(state, action: PayloadAction<ThemeKey>) {
       state.theme = action.payload
+    },
+    toggleMode(state) {
+      state.mode = state.mode === 'dark' ? 'light' : 'dark'
     },
     setQuery(state, action: PayloadAction<string>) {
       state.query = action.payload
@@ -93,6 +98,7 @@ export const {
   setLayout,
   setSection,
   setTheme,
+  toggleMode,
   setQuery,
   setDiet,
   setPublicFilter,
