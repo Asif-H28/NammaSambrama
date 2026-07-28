@@ -1,11 +1,11 @@
 @import 'tailwindcss';
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Kannada:wght@600;700;900&family=Playfair+Display:wght@600;700&family=Dancing+Script:wght@700&family=Mukta:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Kannada:wght@600;700;900&family=Playfair+Display:wght@600;700&family=Dancing+Script:wght@700&family=Poppins:wght@400;500;600;700&display=swap');
 
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --font-heading: 'Inter', system-ui, sans-serif;
-  --font-body: 'Inter', system-ui, sans-serif;
+  --font-heading: 'Poppins', system-ui, sans-serif;
+  --font-body: 'Poppins', system-ui, sans-serif;
 
   --radius-sm: 4px;
   --radius-md: 8px;
@@ -122,6 +122,128 @@
   --t-danger-bd: #d99b9b;
   --t-veg: #2e7d32;
   --t-veg-fg: #1f5522;
+  --t-nonveg: #9a3a3a;
+
+  --p-bg: #fbf1de;
+  --p-card: #fffdf7;
+  --p-text: #241c14;
+  --p-muted: #6b5f52;
+  --p-deep: #0f1c3f;
+  --p-deeper: #081128;
+  --p-deep-2: #1b2e5c;
+  --p-gold: #d4af37;
+  --p-gold-dark: #a9812e;
+  --p-gold-light: #f0d77b;
+  --p-rose: #c98098;
+  --p-art-a: #f3e4c4;
+  --p-art-b: #e7b8c2;
+  --p-veg: #2e7d32;
+  --p-nonveg: #8b3a3a;
+}
+
+/* ── Theme: Emerald Estate (dark green & white, admin only) ──────────── */
+[data-theme='emerald'] {
+  --color-bg: #0b1712;
+  --color-surface: #12241d;
+  --color-text: #eef4f0;
+  --color-accent: #2f9e6e;
+  --color-accent-2: #c9a769;
+  --color-divider: color-mix(in srgb, #eef4f0 14%, transparent);
+
+  --color-neutral-100: #f4f8f5;
+  --color-neutral-200: #e2ece5;
+  --color-neutral-300: #c7d6cc;
+  --color-neutral-400: #a4bcac;
+  --color-neutral-500: #82998a;
+  --color-neutral-600: #647a6c;
+  --color-neutral-700: #4a5c50;
+  --color-neutral-800: #2c3b31;
+  --color-neutral-900: #182620;
+
+  --color-accent-100: #eafcf3;
+  --color-accent-200: #cdf3df;
+  --color-accent-300: #a2e6c4;
+  --color-accent-400: #66d1a0;
+  --color-accent-500: #35b47e;
+  --color-accent-600: #2a9468;
+  --color-accent-700: #217352;
+  --color-accent-800: #1a5640;
+  --color-accent-900: #113a2a;
+
+  --color-accent-2-100: #fbf5e6;
+  --color-accent-2-800: #4a3d1e;
+  --color-section: #16302380;
+
+  --t-side-a: #0e2019;
+  --t-side-b: #081310;
+  --t-scrim: rgba(8, 19, 15, .78);
+  --t-well: #10201a;
+  --t-danger: #e2a3a3;
+  --t-danger-fg: #f2cccc;
+  --t-danger-bd: #a35c5c;
+  --t-veg: #7cc98f;
+  --t-veg-fg: #cdedd4;
+  --t-nonveg: #d18a8a;
+
+  --p-bg: #fbf1de;
+  --p-card: #fffdf7;
+  --p-text: #241c14;
+  --p-muted: #6b5f52;
+  --p-deep: #0f1c3f;
+  --p-deeper: #081128;
+  --p-deep-2: #1b2e5c;
+  --p-gold: #d4af37;
+  --p-gold-dark: #a9812e;
+  --p-gold-light: #f0d77b;
+  --p-rose: #c98098;
+  --p-art-a: #f3e4c4;
+  --p-art-b: #e7b8c2;
+  --p-veg: #2e7d32;
+  --p-nonveg: #8b3a3a;
+}
+
+/* ── Theme: Emerald Estate — light mode ───────────────────────────────── */
+[data-theme='emerald'][data-mode='light'] {
+  --color-bg: #f6f8f6;
+  --color-surface: #ffffff;
+  --color-text: #10241a;
+  --color-accent: #1f7a52;
+  --color-accent-2: #a3822f;
+  --color-divider: color-mix(in srgb, #10241a 13%, transparent);
+
+  --color-neutral-100: #182620;
+  --color-neutral-200: #2c3b31;
+  --color-neutral-300: #4a5c50;
+  --color-neutral-400: #647a6c;
+  --color-neutral-500: #56705f;
+  --color-neutral-600: #82998a;
+  --color-neutral-700: #a4bcac;
+  --color-neutral-800: #cfe0d5;
+  --color-neutral-900: #e6f0e9;
+
+  --color-accent-100: #113a2a;
+  --color-accent-200: #1a5640;
+  --color-accent-300: #217352;
+  --color-accent-400: #2a9468;
+  --color-accent-500: #1f7a52;
+  --color-accent-600: #35b47e;
+  --color-accent-700: #7fd9ad;
+  --color-accent-800: #c3f0da;
+  --color-accent-900: #eafcf3;
+
+  --color-accent-2-100: #4a3d1e;
+  --color-accent-2-800: #fbf5e6;
+  --color-section: #e2f1e7;
+
+  --t-side-a: #e5f0e8;
+  --t-side-b: #f6f8f6;
+  --t-scrim: rgba(246, 248, 246, .74);
+  --t-well: #edf5ef;
+  --t-danger: #b23c3c;
+  --t-danger-fg: #7a2424;
+  --t-danger-bd: #d99b9b;
+  --t-veg: #1f7a3c;
+  --t-veg-fg: #17532a;
   --t-nonveg: #9a3a3a;
 
   --p-bg: #fbf1de;
@@ -303,11 +425,56 @@ textarea.input { min-height: 90px; resize: vertical; }
 .dialog-body { font-size: 14px; opacity: 0.85; }
 .dialog-actions { display: flex; justify-content: flex-end; gap: var(--space-2); margin-top: var(--space-2); }
 
+.app-mobile-bar { display: none; }
+.app-side-close { display: none; }
+
+@media (min-width: 821px) {
+  .app-shell { height: 100vh; overflow: hidden; }
+  .app-side { overflow-y: auto; }
+  .app-pad { height: 100vh; overflow-y: auto; }
+}
+
 @media (max-width: 820px) {
   .app-shell { flex-direction: column; }
-  .app-side { width: 100% !important; flex-direction: row !important; overflow-x: auto; gap: 4px !important; padding: 10px 12px !important; border-right: none !important; border-bottom: 1px solid var(--color-divider); }
-  .app-side-brand { display: none !important; }
-  .app-nav { flex-direction: row !important; }
-  .app-pad { padding: 20px 16px 60px !important; }
+  .app-mobile-bar { display: flex; position: sticky; top: 0; z-index: 30; }
+  .app-side-close { display: grid; }
+
+  .app-side {
+    position: fixed !important;
+    inset: 0 auto 0 0;
+    z-index: 40;
+    width: min(300px, 84vw) !important;
+    max-width: 84vw;
+    flex-direction: column !important;
+    gap: 18px !important;
+    padding: 18px 14px !important;
+    border-right: 1px solid var(--color-divider) !important;
+    transform: translateX(-100%);
+    transition: transform .22s ease;
+    overflow-y: auto;
+  }
+  .app-side.is-open { transform: translateX(0); }
+  .app-side-brand { display: flex !important; }
+  .app-nav { flex-direction: column !important; }
+  .app-side-collapse-btn { display: none !important; }
+
+  .app-pad { padding: 18px 14px 60px !important; }
   .app-split { grid-template-columns: 1fr !important; }
+  .app-mode-toggle { top: 12px !important; right: 14px !important; }
+  .calendar-shell { align-items: stretch !important; grid-template-columns: minmax(0,1fr) !important; }
+  .calendar-shell > * { height: auto !important; max-height: none !important; min-width: 0 !important; }
+  .calendar-shell .calendar-day-list { max-height: 360px !important; }
+  .calendar-grid { grid-template-columns: repeat(7,minmax(0,1fr)) !important; }
+}
+
+/* — enquiries: table on wider screens, stacked cards on phones — */
+.enquiry-cards { display: none; }
+
+@media (max-width: 600px) {
+  .enquiry-table { display: none; }
+  .enquiry-cards { display: flex; }
+}
+
+@media (max-width: 480px) {
+  .dish-row { grid-template-columns: 1fr !important; }
 }

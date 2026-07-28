@@ -50,7 +50,7 @@ export function PreviewDialog() {
                 borderRadius: 14,
                 border: '1px solid color-mix(in srgb,var(--p-deep) 12%,transparent)',
                 maxWidth: 380,
-                fontFamily: "'Mukta',sans-serif",
+                fontFamily: "'Poppins',sans-serif",
                 color: 'var(--p-text)',
               }}
             >
@@ -60,7 +60,7 @@ export function PreviewDialog() {
                 <span
                   className="inline-block uppercase mb-[6px]"
                   style={{
-                    font: "600 9.5px/1 'Inter',sans-serif",
+                    font: "600 9.5px/1 'Poppins',sans-serif",
                     letterSpacing: '.1em',
                     padding: '4px 9px',
                     borderRadius: 999,
@@ -84,7 +84,7 @@ export function PreviewDialog() {
                 <div style={{ padding: '14px 16px' }}>
                   <p
                     className="uppercase"
-                    style={{ margin: '0 0 7px', font: "600 10.5px/1 'Inter',sans-serif", letterSpacing: '.08em', color: 'var(--p-muted)' }}
+                    style={{ margin: '0 0 7px', font: "600 10.5px/1 'Poppins',sans-serif", letterSpacing: '.08em', color: 'var(--p-muted)' }}
                   >
                     Food
                   </p>
@@ -97,7 +97,7 @@ export function PreviewDialog() {
                 <div style={{ padding: '14px 16px', borderLeft: '1px solid color-mix(in srgb,var(--p-deep) 10%,transparent)' }}>
                   <p
                     className="uppercase"
-                    style={{ margin: '0 0 7px', font: "600 10.5px/1 'Inter',sans-serif", letterSpacing: '.08em', color: 'var(--p-muted)' }}
+                    style={{ margin: '0 0 7px', font: "600 10.5px/1 'Poppins',sans-serif", letterSpacing: '.08em', color: 'var(--p-muted)' }}
                   >
                     Design
                   </p>
@@ -110,7 +110,7 @@ export function PreviewDialog() {
               </div>
             </article>
           ) : (
-            <div style={{ fontFamily: "'Mukta',sans-serif", color: 'var(--p-text)' }}>
+            <div style={{ fontFamily: "'Poppins',sans-serif", color: 'var(--p-text)' }}>
               <h3 style={{ margin: '0 0 12px', font: "700 19px/1.2 'Playfair Display',serif", color: 'var(--p-deep)' }}>
                 {g.foodType || 'Food category'}
               </h3>

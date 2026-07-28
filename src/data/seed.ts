@@ -1,5 +1,5 @@
 import { uid } from '@/lib/id'
-import type { Dish, EventType, FoodCategory, Line } from '@/types'
+import type { Dish, Enquiry, EventType, FoodCategory, Line } from '@/types'
 
 const line = (text: string): Line => ({ id: uid(), text })
 const lines = (arr: string[]): Line[] => arr.map(line)
@@ -182,6 +182,140 @@ export const SEED_FOODS: FoodCategory[] = [
       dish('Chicken 65', false, 'Curry-leaf tempered, Chennai style'),
       dish('Live Grill & BBQ', false, 'Chef-manned, four marinades'),
     ],
+  },
+]
+
+const HOUR = 60 * 60 * 1000
+const DAY = 24 * HOUR
+const NOW = new Date('2026-07-28T18:00:00').getTime()
+
+export const SEED_ENQUIRIES: Enquiry[] = [
+  {
+    id: uid(),
+    createdAt: NOW - 2 * HOUR,
+    eventLabel: 'Wedding',
+    isCustomEvent: false,
+    items: [
+      { name: 'Banana-leaf sit-down feast', isCustom: false },
+      { name: 'Masala Dosa', isCustom: false },
+      { name: 'Payasa', isCustom: false },
+      { name: 'Live Chaat Counter', isCustom: false },
+    ],
+    contactName: 'Ramesh Gowda',
+    contactPhone: '98450 11223',
+    guestCount: '350',
+    eventDate: '2026-08-15',
+    eventTime: '10:00',
+    contactNotes: 'Looking for a December weekend, outdoor mandap setup.',
+    status: 'new',
+  },
+  {
+    id: uid(),
+    createdAt: NOW - 7 * HOUR,
+    eventLabel: 'Birthday',
+    isCustomEvent: false,
+    items: [
+      { name: 'Chicken Fried Rice', isCustom: false },
+      { name: 'Veg Manchurian', isCustom: false },
+      { name: 'Live Grill & BBQ', isCustom: false },
+      { name: 'Chocolate fountain', isCustom: true },
+    ],
+    contactName: 'Anitha Shetty',
+    contactPhone: '99001 44556',
+    guestCount: '60',
+    eventDate: '2026-08-02',
+    eventTime: '17:30',
+    contactNotes: "Kid's birthday, need a cartoon theme decorator too.",
+    status: 'contacted',
+  },
+  {
+    id: uid(),
+    createdAt: NOW - DAY,
+    eventLabel: 'Engagement',
+    isCustomEvent: false,
+    items: [
+      { name: 'Paneer Tikka', isCustom: false },
+      { name: 'Hyderabadi Chicken Biryani', isCustom: false },
+      { name: 'Mysore Pak', isCustom: false },
+    ],
+    contactName: 'Divya & Karthik',
+    contactPhone: '90080 33221',
+    guestCount: '120',
+    eventDate: '2026-08-15',
+    eventTime: '19:00',
+    contactNotes: '',
+    status: 'new',
+  },
+  {
+    id: uid(),
+    createdAt: NOW - 1.5 * DAY,
+    eventLabel: 'Corporate',
+    isCustomEvent: false,
+    items: [
+      { name: 'Dal Makhani', isCustom: false },
+      { name: 'Amritsari Kulcha', isCustom: false },
+      { name: 'Live Chaat Counter', isCustom: false },
+    ],
+    contactName: 'Suresh Kumar, Infotech Park',
+    contactPhone: '97401 22110',
+    guestCount: '200',
+    eventDate: '2026-08-22',
+    eventTime: '11:00',
+    contactNotes: 'Annual day event, need AV setup and stage.',
+    status: 'closed',
+  },
+  {
+    id: uid(),
+    createdAt: NOW - 2 * DAY,
+    eventLabel: 'Baby Shower',
+    isCustomEvent: false,
+    items: [
+      { name: 'Bisi Bele Bath', isCustom: false },
+      { name: 'Obbattu / Holige', isCustom: false },
+    ],
+    contactName: 'Priya Rao',
+    contactPhone: '96110 88997',
+    guestCount: '45',
+    eventDate: '2026-08-09',
+    eventTime: '09:30',
+    contactNotes: 'Pastel theme, morning event.',
+    status: 'contacted',
+  },
+  {
+    id: uid(),
+    createdAt: NOW - 3 * DAY,
+    eventLabel: 'Wedding',
+    isCustomEvent: false,
+    items: [
+      { name: 'Rogan Josh', isCustom: false },
+      { name: 'Butter Chicken', isCustom: false },
+      { name: 'Chilli Chicken', isCustom: false },
+      { name: 'Live Grill & BBQ', isCustom: false },
+    ],
+    contactName: 'Nikhil & Sowmya',
+    contactPhone: '95350 76421',
+    guestCount: '500',
+    eventDate: '2026-08-16',
+    eventTime: '20:00',
+    contactNotes: 'Reception night, need a bigger dinner spread.',
+    status: 'new',
+  },
+  {
+    id: uid(),
+    createdAt: NOW - 4 * DAY,
+    eventLabel: 'Housewarming',
+    isCustomEvent: true,
+    items: [
+      { name: 'Akki Rotti', isCustom: false },
+      { name: 'Payasa', isCustom: false },
+    ],
+    contactName: 'Manjunath H R',
+    contactPhone: '94480 55667',
+    guestCount: '80',
+    eventDate: '2026-09-05',
+    eventTime: '08:00',
+    contactNotes: 'Griha pravesham, need pooja arrangements too.',
+    status: 'closed',
   },
 ]
 

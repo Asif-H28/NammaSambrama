@@ -8,7 +8,7 @@ import { PublicHeader } from '@/components/layout/PublicHeader'
 
 const pill = (active: boolean) =>
   ({
-    font: '600 12.5px/1 Inter,sans-serif',
+    font: '600 12.5px/1 Poppins,sans-serif',
     padding: '9px 17px',
     borderRadius: 999,
     cursor: 'pointer',
@@ -64,7 +64,7 @@ export function PublicSite({ standalone = false }: { standalone?: boolean }) {
     <div className="animate-rise" style={standalone ? undefined : { margin: '-26px -32px -70px' }}>
       <PublicHeader lang={lang} onLangChange={setLang} />
 
-      <div style={{ background: 'var(--p-bg)', color: 'var(--p-text)', fontFamily: "'Mukta',sans-serif" }}>
+      <div style={{ background: 'var(--p-bg)', color: 'var(--p-text)', fontFamily: "'Poppins',sans-serif" }}>
         <header
           className="relative text-center overflow-hidden"
           style={{
@@ -157,7 +157,7 @@ export function PublicSite({ standalone = false }: { standalone?: boolean }) {
                           cursor: 'pointer',
                           background: 'color-mix(in srgb,var(--p-deeper) 78%,transparent)',
                           color: 'var(--p-gold-light)',
-                          font: "600 10.5px/1 'Inter',sans-serif",
+                          font: "600 10.5px/1 'Poppins',sans-serif",
                           letterSpacing: '.06em',
                         }}
                       >
@@ -176,7 +176,7 @@ export function PublicSite({ standalone = false }: { standalone?: boolean }) {
                       <span
                         className="inline-block uppercase mb-[6px]"
                         style={{
-                          font: "600 9.5px/1 'Inter',sans-serif",
+                          font: "600 9.5px/1 'Poppins',sans-serif",
                           letterSpacing: '.1em',
                           padding: '4px 9px',
                           borderRadius: 999,
@@ -199,7 +199,7 @@ export function PublicSite({ standalone = false }: { standalone?: boolean }) {
                     style={{ borderTop: '1px solid color-mix(in srgb,var(--p-deep) 10%,transparent)' }}
                   >
                     <div style={{ padding: '15px 18px 18px' }}>
-                      <p className="uppercase" style={{ margin: '0 0 8px', font: "600 11px/1 'Inter',sans-serif", letterSpacing: '.08em', color: 'var(--p-muted)' }}>
+                      <p className="uppercase" style={{ margin: '0 0 8px', font: "600 11px/1 'Poppins',sans-serif", letterSpacing: '.08em', color: 'var(--p-muted)' }}>
                         {lang === 'kn' ? 'ಆಹಾರ' : 'Food'}
                       </p>
                       <ul className="list-none m-0 p-0 flex flex-col gap-[6px]">
@@ -217,7 +217,7 @@ export function PublicSite({ standalone = false }: { standalone?: boolean }) {
                     <div
                       style={{ padding: '15px 18px 18px', borderLeft: '1px solid color-mix(in srgb,var(--p-deep) 10%,transparent)' }}
                     >
-                      <p className="uppercase" style={{ margin: '0 0 8px', font: "600 11px/1 'Inter',sans-serif", letterSpacing: '.08em', color: 'var(--p-muted)' }}>
+                      <p className="uppercase" style={{ margin: '0 0 8px', font: "600 11px/1 'Poppins',sans-serif", letterSpacing: '.08em', color: 'var(--p-muted)' }}>
                         {lang === 'kn' ? 'ವಿನ್ಯಾಸ' : 'Design'}
                       </p>
                       <ul className="list-none m-0 p-0 flex flex-col gap-[6px]">
@@ -355,8 +355,6 @@ export function PublicSite({ standalone = false }: { standalone?: boolean }) {
 
       <a
         href="/book"
-        target="_blank"
-        rel="noopener noreferrer"
         className="flex items-center gap-[8px]"
         style={{
           position: 'fixed',
@@ -367,7 +365,7 @@ export function PublicSite({ standalone = false }: { standalone?: boolean }) {
           borderRadius: 999,
           background: 'linear-gradient(150deg,var(--p-gold),var(--p-gold-dark))',
           color: 'var(--p-deeper)',
-          font: "700 14px/1 'Inter',sans-serif",
+          font: "700 14px/1 'Poppins',sans-serif",
           boxShadow: '0 10px 26px -8px rgba(0,0,0,.5)',
           textDecoration: 'none',
         }}

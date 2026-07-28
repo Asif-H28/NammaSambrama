@@ -93,7 +93,7 @@ export function FoodForm() {
               {g.dishlist.map((d) => (
                 <div
                   key={d.id}
-                  className="grid gap-[11px] items-start"
+                  className="dish-row grid gap-[11px] items-start"
                   style={{
                     gridTemplateColumns: '74px minmax(0,1fr)',
                     padding: 11,

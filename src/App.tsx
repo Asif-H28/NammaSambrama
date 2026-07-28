@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { toggleMode } from '@/features/ui/uiSlice'
 import { Sidebar } from '@/components/layout/Sidebar'
@@ -37,7 +38,7 @@ function ModeToggle() {
     <button
       onClick={() => dispatch(toggleMode())}
       title={mode === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
-      className="grid place-items-center"
+      className="app-mode-toggle grid place-items-center"
       style={{
         position: 'fixed',
         top: 16,
@@ -66,9 +67,86 @@ function ModeToggle() {
   )
 }
 
+function MobileTopBar({ onOpenMenu }: { onOpenMenu: () => void }) {
+  return (
+    <div
+      className="app-mobile-bar flex items-center gap-[12px]"
+      style={{
+        padding: '12px 16px',
+        background: 'linear-gradient(185deg,var(--t-side-a),var(--t-side-b) 70%)',
+        borderBottom: '1px solid var(--color-divider)',
+      }}
+    >
+      <button
+        onClick={onOpenMenu}
+        aria-label="Open menu"
+        className="flex-none grid place-items-center"
+        style={{
+          width: 36,
+          height: 36,
+          borderRadius: 9,
+          border: '1px solid var(--color-divider)',
+          background: 'var(--color-surface)',
+          color: 'var(--color-text)',
+          cursor: 'pointer',
+        }}
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+          <path d="M4 7h16M4 12h16M4 17h16" />
+        </svg>
+      </button>
+      <div
+        className="flex-none grid place-items-center"
+        style={{
+          width: 28,
+          height: 28,
+          borderRadius: 8,
+          background: 'linear-gradient(150deg,var(--color-accent-500),var(--color-accent-700))',
+          font: "700 13px/1 'Noto Sans Kannada',sans-serif",
+          color: 'var(--color-accent-100)',
+        }}
+      >
+        ನ
+      </div>
+      <div style={{ font: "500 14px/1.2 var(--font-heading)" }}>ನಮ್ಮ ಸಂಭ್ರಮ</div>
+    </div>
+  )
+}
+
+const SIDEBAR_COLLAPSED_KEY = 'namma-sambrama:sidebar-collapsed'
+
 function App() {
   const theme = useAppSelector((s) => s.ui.theme)
   const mode = useAppSelector((s) => s.ui.mode)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [collapsed, setCollapsed] = useState(() => {
+    try {
+      return localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === '1'
+    } catch {
+      return false
+    }
+  })
+
+  const [isDesktop, setIsDesktop] = useState(() => window.innerWidth > 820)
+
+  useEffect(() => {
+    const mql = window.matchMedia('(min-width: 821px)')
+    const onChange = () => setIsDesktop(mql.matches)
+    mql.addEventListener('change', onChange)
+    return () => mql.removeEventListener('change', onChange)
+  }, [])
+
+  const toggleCollapsed = () => {
+    setCollapsed((prev) => {
+      const next = !prev
+      try {
+        localStorage.setItem(SIDEBAR_COLLAPSED_KEY, next ? '1' : '0')
+      } catch {
+        // ignore storage errors
+      }
+      return next
+    })
+  }
 
   return (
     <div
@@ -77,7 +155,20 @@ function App() {
       className="app-shell flex min-h-screen"
       style={{ background: 'var(--color-bg)', color: 'var(--color-text)', fontFamily: 'var(--font-body)', fontSize: 15 }}
     >
-      <Sidebar />
+      <MobileTopBar onOpenMenu={() => setMenuOpen(true)} />
+      {menuOpen && (
+        <div
+          className="app-scrim"
+          onClick={() => setMenuOpen(false)}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.5)', zIndex: 39 }}
+        />
+      )}
+      <Sidebar
+        mobileOpen={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        collapsed={isDesktop && collapsed}
+        onToggleCollapse={toggleCollapsed}
+      />
       <main className="app-pad flex-1 min-w-0" style={{ padding: '26px 32px 70px' }}>
         <Screen />
       </main>

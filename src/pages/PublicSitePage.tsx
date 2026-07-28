@@ -1,5 +1,6 @@
 import { useAppSelector } from '@/store/hooks'
 import { VideoDialog } from '@/components/layout/VideoDialog'
+import { Toast } from '@/components/layout/Toast'
 import { PublicSite } from '@/pages/PublicSite'
 
 export function PublicSitePage() {
@@ -14,6 +15,7 @@ export function PublicSitePage() {
     >
       <PublicSite standalone />
       <VideoDialog />
+      <Toast />
     </div>
   )
 }

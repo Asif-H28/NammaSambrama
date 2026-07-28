@@ -32,7 +32,7 @@ export function PublicHeader({ lang, onLangChange }: { lang: PublicLang; onLangC
               borderRadius: 999,
               border: 0,
               cursor: 'pointer',
-              font: "600 12px/1 'Inter',sans-serif",
+              font: "600 12px/1 'Poppins',sans-serif",
               background: lang === code ? 'var(--color-accent, #9184d9)' : 'transparent',
               color: lang === code ? '#161826' : '#cfd3e5',
             }}
@@ -54,7 +54,7 @@ export function PublicHeader({ lang, onLangChange }: { lang: PublicLang; onLangC
             background: 'rgba(255,255,255,.08)',
             color: '#e9e9ed',
             cursor: 'pointer',
-            font: "600 12px/1 'Inter',sans-serif",
+            font: "600 12px/1 'Poppins',sans-serif",
           }}
         >
           G
@@ -88,7 +88,7 @@ export function PublicHeader({ lang, onLangChange }: { lang: PublicLang; onLangC
                   background: 'transparent',
                   color: '#e9e9ed',
                   cursor: 'pointer',
-                  font: "500 13px/1 'Inter',sans-serif",
+                  font: "500 13px/1 'Poppins',sans-serif",
                 }}
                 onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,.06)')}
                 onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}

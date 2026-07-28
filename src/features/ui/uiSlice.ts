@@ -12,7 +12,6 @@ interface UiState {
   section: FormSection
   theme: ThemeKey
   mode: ThemeMode
-  showThemePicker: boolean
   query: string
   diet: 'all' | 'veg' | 'nonveg'
   publicFilter: string
@@ -28,7 +27,6 @@ const initialState: UiState = {
   section: 'basics',
   theme: 'blurple',
   mode: 'dark',
-  showThemePicker: true,
   query: '',
   diet: 'all',
   publicFilter: 'all',

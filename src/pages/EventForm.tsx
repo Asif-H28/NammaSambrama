@@ -463,7 +463,7 @@ export function EventForm() {
               </div>
               <div
                 className="overflow-hidden"
-                style={{ background: 'var(--p-card)', borderRadius: 10, color: 'var(--p-text)', fontFamily: "'Mukta',sans-serif" }}
+                style={{ background: 'var(--p-card)', borderRadius: 10, color: 'var(--p-text)', fontFamily: "'Poppins',sans-serif" }}
               >
                 <div style={{ height: 5, background: 'linear-gradient(90deg,var(--p-gold-dark),var(--p-gold))' }} />
                 <div style={{ height: 128, background: previewArt }} />
@@ -471,7 +471,7 @@ export function EventForm() {
                   <span
                     className="inline-block uppercase mb-[7px]"
                     style={{
-                      font: "600 9.5px/1 'Inter',sans-serif",
+                      font: "600 9.5px/1 'Poppins',sans-serif",
                       letterSpacing: '.1em',
                       padding: '4px 9px',
                       borderRadius: 999,

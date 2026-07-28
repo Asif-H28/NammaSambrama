@@ -1,4 +1,4 @@
-export type ThemeKey = 'blurple'
+export type ThemeKey = 'blurple' | 'emerald'
 export type ThemeMode = 'light' | 'dark'
 export type Layout = 'stacked' | 'split' | 'steps'
 export type FormSection = 'basics' | 'media' | 'food' | 'design'
@@ -67,5 +67,28 @@ export interface BookingState {
   customItems: BookingCustomItem[]
   contactName: string
   contactPhone: string
+  guestCount: string
+  eventDate: string
+  eventTime: string
   contactNotes: string
+}
+
+export interface EnquiryItem {
+  name: string
+  isCustom: boolean
+}
+
+export interface Enquiry {
+  id: string
+  createdAt: number
+  eventLabel: string
+  isCustomEvent: boolean
+  items: EnquiryItem[]
+  contactName: string
+  contactPhone: string
+  guestCount: string
+  eventDate: string
+  eventTime: string
+  contactNotes: string
+  status: 'new' | 'contacted' | 'closed'
 }

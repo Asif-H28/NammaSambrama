@@ -10,6 +10,9 @@ const initialState: BookingState = {
   customItems: [],
   contactName: '',
   contactPhone: '',
+  guestCount: '',
+  eventDate: '',
+  eventTime: '',
   contactNotes: '',
 }
 
@@ -50,7 +53,12 @@ const bookingSlice = createSlice({
     goToStep(state, action: PayloadAction<BookingState['step']>) {
       state.step = action.payload
     },
-    setContact(state, action: PayloadAction<Partial<Pick<BookingState, 'contactName' | 'contactPhone' | 'contactNotes'>>>) {
+    setContact(
+      state,
+      action: PayloadAction<
+        Partial<Pick<BookingState, 'contactName' | 'contactPhone' | 'guestCount' | 'eventDate' | 'eventTime' | 'contactNotes'>>
+      >,
+    ) {
       Object.assign(state, action.payload)
     },
   },
