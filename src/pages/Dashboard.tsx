@@ -1,13 +1,25 @@
+import { useEffect } from 'react'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { goScreen } from '@/features/ui/uiSlice'
 import { startEvent, startFood } from '@/features/forms/formsSlice'
 import { EventCalendar } from '@/components/dashboard/EventCalendar'
+import { fetchEvents, fetchFoods } from '@/features/catalog/catalogThunks'
+import { fetchEnquiries } from '@/features/enquiries/enquiriesThunks'
 
 export function Dashboard() {
   const dispatch = useAppDispatch()
   const events = useAppSelector((s) => s.catalog.events)
   const foods = useAppSelector((s) => s.catalog.foods)
   const enquiries = useAppSelector((s) => s.enquiries.items)
+  const eventsLoaded = useAppSelector((s) => s.catalog.eventsLoaded)
+  const foodsLoaded = useAppSelector((s) => s.catalog.foodsLoaded)
+  const enquiriesLoaded = useAppSelector((s) => s.enquiries.loaded)
+
+  useEffect(() => {
+    if (!eventsLoaded) dispatch(fetchEvents())
+    if (!foodsLoaded) dispatch(fetchFoods())
+    if (!enquiriesLoaded) dispatch(fetchEnquiries())
+  }, [eventsLoaded, foodsLoaded, enquiriesLoaded, dispatch])
 
   const totalDishes = foods.reduce((n, c) => n + c.dishlist.length, 0)
   const countVeg = foods.reduce((n, c) => n + c.dishlist.filter((d) => d.isVeg).length, 0)

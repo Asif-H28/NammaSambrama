@@ -1,7 +1,8 @@
+import { useEffect } from 'react'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { goScreen, setQuery, showToast } from '@/features/ui/uiSlice'
 import { startEvent } from '@/features/forms/formsSlice'
-import { deleteEvent } from '@/features/catalog/catalogSlice'
+import { fetchEvents, removeEvent } from '@/features/catalog/catalogThunks'
 import { EventIcon, ART, artFor } from '@/data/icons'
 import { Input } from '@/components/ui/input'
 import type { EventType } from '@/types'
@@ -10,6 +11,12 @@ export function EventTypes() {
   const dispatch = useAppDispatch()
   const events = useAppSelector((s) => s.catalog.events)
   const query = useAppSelector((s) => s.ui.query)
+  const loading = useAppSelector((s) => s.catalog.loading)
+  const eventsLoaded = useAppSelector((s) => s.catalog.eventsLoaded)
+
+  useEffect(() => {
+    if (!eventsLoaded) dispatch(fetchEvents())
+  }, [eventsLoaded, dispatch])
 
   const q = query.trim().toLowerCase()
   const filtered = events.filter(
@@ -110,7 +117,7 @@ export function EventTypes() {
                   className="btn btn-secondary"
                   style={{ color: 'var(--t-danger)' }}
                   onClick={() => {
-                    dispatch(deleteEvent(e.id))
+                    dispatch(removeEvent(e.id))
                     dispatch(showToast('Event type removed from the public site'))
                   }}
                 >
@@ -121,9 +128,14 @@ export function EventTypes() {
           </article>
         ))}
       </div>
-      {filtered.length === 0 && (
+      {loading && events.length === 0 && (
         <p className="text-muted text-center" style={{ padding: '34px 0' }}>
-          No event types match that search.
+          Loading event types…
+        </p>
+      )}
+      {!loading && filtered.length === 0 && (
+        <p className="text-muted text-center" style={{ padding: '34px 0' }}>
+          {events.length === 0 ? 'No event types yet — create your first one.' : 'No event types match that search.'}
         </p>
       )}
     </div>

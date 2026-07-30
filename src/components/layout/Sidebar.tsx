@@ -1,5 +1,6 @@
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { goScreen, setTheme } from '@/features/ui/uiSlice'
+import { logout } from '@/features/auth/authSlice'
 import { cn } from '@/lib/utils'
 import type { ThemeKey } from '@/types'
 
@@ -75,6 +76,7 @@ export function Sidebar({
   const dispatch = useAppDispatch()
   const screen = useAppSelector((s) => s.ui.screen)
   const theme = useAppSelector((s) => s.ui.theme)
+  const admin = useAppSelector((s) => s.auth.admin)
 
   const go = (screenKey: Parameters<typeof goScreen>[0]) => {
     dispatch(goScreen(screenKey))
@@ -249,7 +251,7 @@ export function Sidebar({
         style={{ borderRadius: 'var(--radius-md)', background: 'var(--color-surface)' }}
       >
         <div
-          className="grid place-items-center text-[11px] flex-none"
+          className="grid place-items-center text-[11px] flex-none uppercase"
           style={{
             width: 28,
             height: 28,
@@ -258,13 +260,28 @@ export function Sidebar({
             color: 'var(--color-accent-100)',
           }}
         >
-          SK
+          {(admin?.username || '?').slice(0, 2)}
         </div>
         {!collapsed && (
-          <div className="min-w-0 text-[12px] leading-tight">
-            <div>Suresh K.</div>
-            <div style={{ color: 'var(--color-neutral-500)', fontSize: 11 }}>Owner</div>
-          </div>
+          <>
+            <div className="min-w-0 text-[12px] leading-tight flex-1">
+              <div className="truncate">{admin?.username ?? 'Admin'}</div>
+              <div className="truncate" style={{ color: 'var(--color-neutral-500)', fontSize: 11 }}>
+                {admin?.email ?? 'Admin'}
+              </div>
+            </div>
+            <button
+              onClick={() => dispatch(logout())}
+              title="Sign out"
+              aria-label="Sign out"
+              className="btn btn-secondary btn-icon flex-none"
+              style={{ width: 28, height: 28 }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
+              </svg>
+            </button>
+          </>
         )}
       </div>
     </aside>

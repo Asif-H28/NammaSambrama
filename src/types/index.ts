@@ -32,7 +32,10 @@ export interface EventType {
   eventTitle: string
   eventDescription: string
   eventIcon: IconKey | ''
+  /** Azure Blob URL */
   eventImage: string
+  /** Azure Blob path, used for cleanup on delete */
+  eventImageId?: string
   eventVideo: string
   foodMenu: Line[]
   eventDesign: Line[]
@@ -42,14 +45,20 @@ export interface Dish {
   id: string
   dishName: string
   isVeg: boolean
+  /** Azure Blob URL */
   dishImage: string
+  /** Azure Blob path, used for cleanup on delete */
+  dishImageId?: string
   dishDescription: string
 }
 
 export interface FoodCategory {
   id: string
   foodType: string
+  /** Azure Blob URL */
   foodtypeimage: string
+  /** Azure Blob path, used for cleanup on delete */
+  foodtypeimageId?: string
   dishlist: Dish[]
 }
 

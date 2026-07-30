@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useAppDispatch } from '@/store/hooks'
-import { setEnquiryStatus } from '@/features/enquiries/enquiriesSlice'
+import { updateEnquiryStatus } from '@/features/enquiries/enquiriesThunks'
 import type { Enquiry } from '@/types'
 
 const MONTH_NAMES = [
@@ -336,7 +336,7 @@ export function EventCalendar({ enquiries }: { enquiries: Enquiry[] }) {
                       className={`tag ${STATUS_TAG[e.status]} flex-none`}
                       style={{ border: 0, cursor: 'pointer', font: 'inherit' }}
                       value={e.status}
-                      onChange={(ev) => dispatch(setEnquiryStatus({ id: e.id, status: ev.target.value as Enquiry['status'] }))}
+                      onChange={(ev) => dispatch(updateEnquiryStatus({ id: e.id, status: ev.target.value as Enquiry['status'] }))}
                     >
                       {(['new', 'contacted', 'closed'] as const).map((s) => (
                         <option key={s} value={s}>

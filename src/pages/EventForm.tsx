@@ -16,6 +16,7 @@ import { ART, artFor, EventIcon, ICON_KEYS, ICON_LABELS } from '@/data/icons'
 import { embedUrl, videoHost } from '@/lib/embed'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import { useImageUpload } from '@/hooks/useImageUpload'
 import { cn } from '@/lib/utils'
 import type { FormSection, Layout } from '@/types'
 
@@ -32,6 +33,8 @@ export function EventForm() {
   const layout = useAppSelector((s) => s.ui.layout)
   const section = useAppSelector((s) => s.ui.section)
   const validate = useAppSelector((s) => s.ui.validate)
+  const saving = useAppSelector((s) => s.catalog.saving)
+  const { uploadImage, uploading } = useImageUpload()
 
   const err = validate ? eventErrors(f) : {}
   const hasErrors = validate && Object.keys(err).length > 0
@@ -57,12 +60,11 @@ export function EventForm() {
       ? ART[f.eventIcon]
       : artFor(f.eventTitle || 'event')
 
-  const readImage = (file: File | undefined, cb: (dataUrl: string) => void) => {
-    if (!file) return
-    const r = new FileReader()
-    r.onload = () => cb(r.result as string)
-    r.readAsDataURL(file)
-  }
+  // Uploads to Azure Blob and stores the returned URL + blob id
+  const pickImage = (file: File | undefined) =>
+    uploadImage(file, ({ url, publicId }) =>
+      dispatch(patchEvent({ eventImage: url, eventImageId: publicId })),
+    )
 
   const hasVideo = !!f.eventVideo && !err.video
 
@@ -98,8 +100,12 @@ export function EventForm() {
           <button className="btn btn-secondary" onClick={() => dispatch(openPreview())}>
             Preview
           </button>
-          <button className="btn btn-primary" onClick={() => dispatch(commitEvent())}>
-            Publish
+          <button
+            className="btn btn-primary"
+            disabled={saving || uploading}
+            onClick={() => dispatch(commitEvent())}
+          >
+            {saving ? 'Saving…' : 'Publish'}
           </button>
         </div>
       </div>
@@ -350,7 +356,7 @@ export function EventForm() {
                   onDragOver={(e) => e.preventDefault()}
                   onDrop={(e) => {
                     e.preventDefault()
-                    readImage(e.dataTransfer.files[0], (d) => dispatch(patchEvent({ eventImage: d })))
+                    pickImage(e.dataTransfer.files[0])
                   }}
                   className="block cursor-pointer p-[6px]"
                   style={{
@@ -363,9 +369,16 @@ export function EventForm() {
                     type="file"
                     accept="image/*"
                     className="hidden"
-                    onChange={(e) => readImage(e.target.files?.[0], (d) => dispatch(patchEvent({ eventImage: d })))}
+                    onChange={(e) => pickImage(e.target.files?.[0])}
                   />
-                  {f.eventImage ? (
+                  {uploading ? (
+                    <div
+                      className="grid place-items-center text-[13px]"
+                      style={{ height: 132, opacity: 0.7 }}
+                    >
+                      Uploading…
+                    </div>
+                  ) : f.eventImage ? (
                     <img
                       src={f.eventImage}
                       alt=""

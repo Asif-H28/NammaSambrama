@@ -1,11 +1,10 @@
-import { uid } from '@/lib/id'
 import { eventErrors } from '@/lib/validate'
 import { goScreen, setValidate, showToast, closePreview } from '@/features/ui/uiSlice'
-import { upsertEvent, upsertFood } from '@/features/catalog/catalogSlice'
+import { saveEvent, saveFood } from '@/features/catalog/catalogThunks'
 import type { AppDispatch, RootState } from '@/store/store'
 
 export function commitEvent() {
-  return (dispatch: AppDispatch, getState: () => RootState) => {
+  return async (dispatch: AppDispatch, getState: () => RootState) => {
     const f = getState().forms.event
     const err = eventErrors(f)
     if (Object.keys(err).length) {
@@ -13,33 +12,49 @@ export function commitEvent() {
       dispatch(closePreview())
       return
     }
+
+    const isUpdate = Boolean(f.id)
     const rec = {
       ...f,
-      id: f.id || uid(),
       foodMenu: f.foodMenu.filter((l) => l.text.trim()),
       eventDesign: f.eventDesign.filter((l) => l.text.trim()),
     }
-    dispatch(upsertEvent(rec))
+
+    const result = await dispatch(saveEvent(rec))
+
+    if (saveEvent.rejected.match(result)) {
+      dispatch(showToast(result.payload ?? 'Failed to save event type'))
+      return
+    }
+
     dispatch(goScreen('events'))
-    dispatch(showToast(f.id ? 'Event type updated — live on the public site' : 'Event type published'))
+    dispatch(showToast(isUpdate ? 'Event type updated — live on the public site' : 'Event type published'))
   }
 }
 
 export function commitFood() {
-  return (dispatch: AppDispatch, getState: () => RootState) => {
+  return async (dispatch: AppDispatch, getState: () => RootState) => {
     const g = getState().forms.food
     if (!g.foodType.trim()) {
       dispatch(setValidate(true))
       dispatch(closePreview())
       return
     }
+
+    const isUpdate = Boolean(g.id)
     const rec = {
       ...g,
-      id: g.id || uid(),
       dishlist: g.dishlist.filter((d) => d.dishName.trim()),
     }
-    dispatch(upsertFood(rec))
+
+    const result = await dispatch(saveFood(rec))
+
+    if (saveFood.rejected.match(result)) {
+      dispatch(showToast(result.payload ?? 'Failed to save food category'))
+      return
+    }
+
     dispatch(goScreen('foods'))
-    dispatch(showToast(g.id ? 'Food category updated' : 'Food category published'))
+    dispatch(showToast(isUpdate ? 'Food category updated' : 'Food category published'))
   }
 }

@@ -1,13 +1,20 @@
+import { useEffect } from 'react'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { goScreen, showToast } from '@/features/ui/uiSlice'
 import { startFood } from '@/features/forms/formsSlice'
-import { deleteFood } from '@/features/catalog/catalogSlice'
+import { fetchFoods, removeFood } from '@/features/catalog/catalogThunks'
 import { artFor } from '@/data/icons'
 import type { FoodCategory } from '@/types'
 
 export function FoodCategories() {
   const dispatch = useAppDispatch()
   const foods = useAppSelector((s) => s.catalog.foods)
+  const loading = useAppSelector((s) => s.catalog.loading)
+  const foodsLoaded = useAppSelector((s) => s.catalog.foodsLoaded)
+
+  useEffect(() => {
+    if (!foodsLoaded) dispatch(fetchFoods())
+  }, [foodsLoaded, dispatch])
   const totalDishes = foods.reduce((n, c) => n + c.dishlist.length, 0)
 
   const editFood = (c: FoodCategory) => {
@@ -81,7 +88,7 @@ export function FoodCategories() {
                   className="btn btn-secondary"
                   style={{ color: 'var(--t-danger)' }}
                   onClick={() => {
-                    dispatch(deleteFood(c.id))
+                    dispatch(removeFood(c.id))
                     dispatch(showToast('Food category removed'))
                   }}
                 >
@@ -92,6 +99,16 @@ export function FoodCategories() {
           </article>
         ))}
       </div>
+      {loading && foods.length === 0 && (
+        <p className="text-muted text-center" style={{ padding: '34px 0' }}>
+          Loading food categories…
+        </p>
+      )}
+      {!loading && foods.length === 0 && (
+        <p className="text-muted text-center" style={{ padding: '34px 0' }}>
+          No food categories yet — create your first one.
+        </p>
+      )}
     </div>
   )
 }

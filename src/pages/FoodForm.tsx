@@ -3,21 +3,28 @@ import { goScreen, openPreview } from '@/features/ui/uiSlice'
 import { patchFood, addDish, patchDish, removeDish } from '@/features/forms/formsSlice'
 import { commitFood } from '@/features/forms/formsThunks'
 import { Input } from '@/components/ui/input'
+import { useImageUpload } from '@/hooks/useImageUpload'
 import { cn } from '@/lib/utils'
 
 export function FoodForm() {
   const dispatch = useAppDispatch()
   const g = useAppSelector((s) => s.forms.food)
   const validate = useAppSelector((s) => s.ui.validate)
+  const saving = useAppSelector((s) => s.catalog.saving)
+  const { uploadImage, uploading } = useImageUpload()
 
   const errFoodType = validate && !g.foodType.trim()
 
-  const readImage = (file: File | undefined, cb: (dataUrl: string) => void) => {
-    if (!file) return
-    const r = new FileReader()
-    r.onload = () => cb(r.result as string)
-    r.readAsDataURL(file)
-  }
+  // Both upload to Azure Blob and store the returned URL + blob id
+  const pickCategoryImage = (file: File | undefined) =>
+    uploadImage(file, ({ url, publicId }) =>
+      dispatch(patchFood({ foodtypeimage: url, foodtypeimageId: publicId })),
+    )
+
+  const pickDishImage = (dishId: string, file: File | undefined) =>
+    uploadImage(file, ({ url, publicId }) =>
+      dispatch(patchDish({ id: dishId, patch: { dishImage: url, dishImageId: publicId } })),
+    )
 
   return (
     <div className="animate-rise">
@@ -34,8 +41,12 @@ export function FoodForm() {
           <button className="btn btn-secondary" onClick={() => dispatch(openPreview())}>
             Preview
           </button>
-          <button className="btn btn-primary" onClick={() => dispatch(commitFood())}>
-            Publish
+          <button
+            className="btn btn-primary"
+            disabled={saving || uploading}
+            onClick={() => dispatch(commitFood())}
+          >
+            {saving ? 'Saving…' : 'Publish'}
           </button>
         </div>
       </div>
@@ -105,7 +116,7 @@ export function FoodForm() {
                     onDragOver={(e) => e.preventDefault()}
                     onDrop={(e) => {
                       e.preventDefault()
-                      readImage(e.dataTransfer.files[0], (img) => dispatch(patchDish({ id: d.id, patch: { dishImage: img } })))
+                      pickDishImage(d.id, e.dataTransfer.files[0])
                     }}
                     className="cursor-pointer grid place-items-center"
                     style={{
@@ -120,7 +131,7 @@ export function FoodForm() {
                       type="file"
                       accept="image/*"
                       className="hidden"
-                      onChange={(e) => readImage(e.target.files?.[0], (img) => dispatch(patchDish({ id: d.id, patch: { dishImage: img } })))}
+                      onChange={(e) => pickDishImage(d.id, e.target.files?.[0])}
                     />
                     {!d.dishImage && (
                       <span className="text-[10.5px] text-center leading-tight" style={{ color: 'var(--color-neutral-500)' }}>
@@ -197,7 +208,7 @@ export function FoodForm() {
             onDragOver={(e) => e.preventDefault()}
             onDrop={(e) => {
               e.preventDefault()
-              readImage(e.dataTransfer.files[0], (d) => dispatch(patchFood({ foodtypeimage: d })))
+              pickCategoryImage(e.dataTransfer.files[0])
             }}
             className="block cursor-pointer p-[6px]"
             style={{
@@ -210,7 +221,7 @@ export function FoodForm() {
               type="file"
               accept="image/*"
               className="hidden"
-              onChange={(e) => readImage(e.target.files?.[0], (d) => dispatch(patchFood({ foodtypeimage: d })))}
+              onChange={(e) => pickCategoryImage(e.target.files?.[0])}
             />
             {g.foodtypeimage ? (
               <img

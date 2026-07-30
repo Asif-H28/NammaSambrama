@@ -1,10 +1,11 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { setDiet, setPublicFilter, openVideo } from '@/features/ui/uiSlice'
 import { ART, artFor, EventIcon } from '@/data/icons'
 import { photoForEventType } from '@/data/eventTypePhotos'
 import { usePublicLanguage } from '@/hooks/usePublicLanguage'
 import { PublicHeader } from '@/components/layout/PublicHeader'
+import { fetchEvents, fetchFoods } from '@/features/catalog/catalogThunks'
 
 const pill = (active: boolean) =>
   ({
@@ -23,6 +24,14 @@ export function PublicSite({ standalone = false }: { standalone?: boolean }) {
   const foods = useAppSelector((s) => s.catalog.foods)
   const diet = useAppSelector((s) => s.ui.diet)
   const publicFilter = useAppSelector((s) => s.ui.publicFilter)
+  const eventsLoaded = useAppSelector((s) => s.catalog.eventsLoaded)
+  const foodsLoaded = useAppSelector((s) => s.catalog.foodsLoaded)
+
+  // Reads the catalog from the unauthenticated /public endpoints
+  useEffect(() => {
+    if (!eventsLoaded) dispatch(fetchEvents())
+    if (!foodsLoaded) dispatch(fetchFoods())
+  }, [eventsLoaded, foodsLoaded, dispatch])
 
   const types: string[] = []
   events.forEach((e) => {

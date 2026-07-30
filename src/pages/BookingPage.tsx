@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import {
   chooseEventType,
@@ -11,15 +11,14 @@ import {
   resetBooking,
 } from '@/features/booking/bookingSlice'
 import { showToast } from '@/features/ui/uiSlice'
-import { addEnquiry } from '@/features/enquiries/enquiriesSlice'
+import { submitEnquiry } from '@/features/enquiries/enquiriesThunks'
+import { fetchEvents, fetchFoods } from '@/features/catalog/catalogThunks'
 import { ART, artFor, EventIcon } from '@/data/icons'
 import { photoForEventType } from '@/data/eventTypePhotos'
 import { preselectedDishIds } from '@/lib/matchDishes'
 import { usePublicLanguage } from '@/hooks/usePublicLanguage'
 import { PublicHeader } from '@/components/layout/PublicHeader'
 import { Toast } from '@/components/layout/Toast'
-import { uid } from '@/lib/id'
-import type { Enquiry } from '@/types'
 
 const STEPS = [
   { key: 'type', en: 'Event', kn: 'ಈವೆಂಟ್' },
@@ -43,6 +42,14 @@ export function BookingPage() {
   const [newItemName, setNewItemName] = useState('')
   const theme = useAppSelector((s) => s.ui.theme)
   const mode = useAppSelector((s) => s.ui.mode)
+  const eventsLoaded = useAppSelector((s) => s.catalog.eventsLoaded)
+  const foodsLoaded = useAppSelector((s) => s.catalog.foodsLoaded)
+
+  // Public route — reads the catalog from the unauthenticated endpoints
+  useEffect(() => {
+    if (!eventsLoaded) dispatch(fetchEvents())
+    if (!foodsLoaded) dispatch(fetchFoods())
+  }, [eventsLoaded, foodsLoaded, dispatch])
 
   const eventTypes = useMemo(() => {
     const seen = new Map<string, (typeof events)[number]>()
@@ -85,25 +92,34 @@ export function BookingPage() {
 
   const selectedDishes = foods.flatMap((c) => c.dishlist.filter((d) => booking.selectedDishIds.includes(d.id)))
 
-  const handleSubmitEnquiry = () => {
-    const enquiry: Enquiry = {
-      id: uid(),
-      createdAt: Date.now(),
-      eventLabel,
-      isCustomEvent: !selectedEvent,
-      items: [
-        ...selectedDishes.map((d) => ({ name: d.dishName, isCustom: false })),
-        ...booking.customItems.map((c) => ({ name: c.name, isCustom: true })),
-      ],
-      contactName: booking.contactName.trim(),
-      contactPhone: booking.contactPhone.trim(),
-      guestCount: booking.guestCount.trim(),
-      eventDate: booking.eventDate,
-      eventTime: booking.eventTime,
-      contactNotes: booking.contactNotes.trim(),
-      status: 'new',
+  const handleSubmitEnquiry = async () => {
+    const result = await dispatch(
+      submitEnquiry({
+        eventLabel,
+        isCustomEvent: !selectedEvent,
+        items: [
+          ...selectedDishes.map((d) => ({ name: d.dishName, isCustom: false })),
+          ...booking.customItems.map((c) => ({ name: c.name, isCustom: true })),
+        ],
+        contactName: booking.contactName.trim(),
+        contactPhone: booking.contactPhone.trim(),
+        guestCount: booking.guestCount.trim(),
+        eventDate: booking.eventDate,
+        eventTime: booking.eventTime,
+        contactNotes: booking.contactNotes.trim(),
+      }),
+    )
+
+    if (submitEnquiry.rejected.match(result)) {
+      dispatch(
+        showToast(
+          result.payload ??
+            (lang === 'kn' ? 'ವಿನಂತಿ ಸಲ್ಲಿಸಲು ವಿಫಲವಾಗಿದೆ' : 'Failed to submit enquiry'),
+        ),
+      )
+      return
     }
-    dispatch(addEnquiry(enquiry))
+
     dispatch(showToast(lang === 'kn' ? '🎉 ನಿಮ್ಮ ವಿನಂತಿ ಸಲ್ಲಿಸಲಾಗಿದೆ!' : '🎉 Your enquiry has been submitted!'))
     dispatch(resetBooking())
   }
