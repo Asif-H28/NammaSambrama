@@ -19,13 +19,19 @@ export function PublicHeader({
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
+  // Close on outside click and on Escape
   useEffect(() => {
     if (!menuOpen) return
     const onClick = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false)
     }
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setMenuOpen(false)
     document.addEventListener('mousedown', onClick)
-    return () => document.removeEventListener('mousedown', onClick)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('mousedown', onClick)
+      document.removeEventListener('keydown', onKey)
+    }
   }, [menuOpen])
 
   return (
@@ -50,7 +56,7 @@ export function PublicHeader({
         </span>
       </a>
 
-      {/* Section links */}
+      {/* Desktop section links */}
       <nav className="ps-nav-links flex items-center gap-[24px]" style={{ marginLeft: 'clamp(12px,4vw,42px)' }}>
         {NAV.map((item) => (
           <a key={item.href} href={item.href} className="ps-navlink">
@@ -59,7 +65,7 @@ export function PublicHeader({
         ))}
       </nav>
 
-      <div className="flex items-center gap-[12px]" style={{ marginLeft: 'auto' }}>
+      <div className="flex items-center gap-[10px]" style={{ marginLeft: 'auto' }}>
         {/* Language toggle */}
         <div
           className="flex items-center flex-none"
@@ -93,63 +99,35 @@ export function PublicHeader({
           ))}
         </div>
 
-        {/* Account menu */}
-        <div className="relative flex-none" ref={menuRef}>
+        {/* Hamburger — mobile only, mirrors the desktop nav links */}
+        <div className="ps-burger-wrap relative flex-none" ref={menuRef}>
           <button
             onClick={() => setMenuOpen((v) => !v)}
-            aria-label="Account menu"
-            className="grid place-items-center"
-            style={{
-              width: 33,
-              height: 33,
-              borderRadius: '50%',
-              border: '1px solid color-mix(in srgb, var(--p-gold) 45%, transparent)',
-              background: 'rgba(255,255,255,.08)',
-              color: 'var(--p-gold-light)',
-              cursor: 'pointer',
-              font: "600 12px/1 'Poppins',sans-serif",
-            }}
+            aria-label={lang === 'kn' ? 'ಮೆನು' : 'Menu'}
+            aria-expanded={menuOpen}
+            className="ps-burger grid place-items-center"
           >
-            G
+            <span className={`ps-burger-ico ${menuOpen ? 'is-open' : ''}`}>
+              <i />
+              <i />
+              <i />
+            </span>
           </button>
+
           {menuOpen && (
-            <div
-              className="absolute flex flex-col"
-              style={{
-                top: 'calc(100% + 9px)',
-                right: 0,
-                minWidth: 172,
-                borderRadius: 12,
-                overflow: 'hidden',
-                background: '#161c30',
-                border: '1px solid color-mix(in srgb, var(--p-gold) 20%, transparent)',
-                boxShadow: '0 16px 34px rgba(0,0,0,.45)',
-                zIndex: 40,
-              }}
-            >
-              {[
-                lang === 'kn' ? 'ಪ್ರೊಫೈಲ್' : 'Profile',
-                lang === 'kn' ? 'ನನ್ನ ಬುಕಿಂಗ್‌ಗಳು' : 'My Bookings',
-                lang === 'kn' ? 'ಲಾಗ್ ಔಟ್' : 'Logout',
-              ].map((item) => (
-                <button
-                  key={item}
-                  className="text-left"
-                  style={{
-                    padding: '11px 15px',
-                    border: 0,
-                    background: 'transparent',
-                    color: '#e9e9ed',
-                    cursor: 'pointer',
-                    font: "500 13px/1 'Poppins',sans-serif",
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(212,175,55,.12)')}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-                  onClick={() => setMenuOpen(false)}
-                >
-                  {item}
-                </button>
+            <div className="ps-burger-menu">
+              {NAV.map((item) => (
+                <a key={item.href} href={item.href} onClick={() => setMenuOpen(false)}>
+                  {lang === 'kn' ? item.kn : item.en}
+                </a>
               ))}
+              <a
+                href="/book"
+                className="is-cta"
+                onClick={() => setMenuOpen(false)}
+              >
+                {lang === 'kn' ? 'ಈವೆಂಟ್ ಬುಕ್ ಮಾಡಿ' : 'Book an Event'}
+              </a>
             </div>
           )}
         </div>
