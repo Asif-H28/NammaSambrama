@@ -638,3 +638,457 @@ textarea.input { min-height: 90px; resize: vertical; }
   .ps-card:hover { transform: none; }
   .ps-card:hover .ps-zoom { transform: none; }
 }
+
+/* Two-line teaser clamp on public event cards */
+.ps-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Public loader — staged luxury reveal
+   ══════════════════════════════════════════════════════════════ */
+
+.nsl-root {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  font-family: 'Poppins', sans-serif;
+  background: #05080f;
+}
+
+/* Deep navy stage with warm centre */
+.nsl-stage {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(1100px 620px at 50% 30%, #1d2f57 0%, #101d3a 42%, #070c1a 78%),
+    linear-gradient(160deg, #05080f, #0a1226);
+}
+
+/* Corner vignette to focus the centre */
+.nsl-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 42%, transparent 38%, rgba(3, 6, 14, 0.82) 100%);
+}
+
+/* Overhead spotlight cone */
+@keyframes nsl-spot {
+  0%, 100% { opacity: 0.5; transform: translateX(-50%) scaleY(1) skewX(0deg); }
+  50%      { opacity: 0.85; transform: translateX(-50%) scaleY(1.06) skewX(2.5deg); }
+}
+.nsl-spot {
+  position: absolute;
+  top: -18%;
+  left: 50%;
+  width: 62vmin;
+  height: 108vmin;
+  transform: translateX(-50%);
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(212, 175, 55, 0.2), rgba(212, 175, 55, 0.05) 45%, transparent 72%);
+  filter: blur(26px);
+  clip-path: polygon(42% 0, 58% 0, 90% 100%, 10% 100%);
+  animation: nsl-spot 6s ease-in-out infinite;
+}
+
+/* Rising gold dust */
+@keyframes nsl-dust-rise {
+  0%   { transform: translate(0, 12vh) scale(.5); opacity: 0; }
+  12%  { opacity: 1; }
+  85%  { opacity: .85; }
+  100% { transform: translate(var(--drift, 0), -84vh) scale(1.1); opacity: 0; }
+}
+.nsl-dust { position: absolute; inset: 0; pointer-events: none; }
+.nsl-dust span {
+  position: absolute;
+  bottom: -4vh;
+  border-radius: 50%;
+  background: #f0d77b;
+  box-shadow: 0 0 8px 2px rgba(240, 215, 123, 0.75);
+  animation-name: nsl-dust-rise;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+
+/* Silk sheen sweeping across */
+@keyframes nsl-silk {
+  0%   { transform: translateX(-130%) rotate(8deg); }
+  100% { transform: translateX(130%) rotate(8deg); }
+}
+.nsl-silk {
+  position: absolute;
+  top: -20%;
+  left: 0;
+  width: 45%;
+  height: 140%;
+  pointer-events: none;
+  background: linear-gradient(100deg, transparent, rgba(240, 215, 123, 0.09) 45%, rgba(255, 255, 255, 0.05) 52%, transparent);
+  filter: blur(14px);
+  animation: nsl-silk 5.2s cubic-bezier(.5, 0, .5, 1) infinite;
+}
+
+.nsl-center {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ── Medallion ── */
+.nsl-medallion {
+  position: relative;
+  width: clamp(180px, 30vmin, 240px);
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+}
+
+.nsl-ring-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+/* Ring draws itself closed, then breathes */
+@keyframes nsl-ring-draw {
+  from { stroke-dashoffset: 553; }
+  to   { stroke-dashoffset: 0; }
+}
+@keyframes nsl-ring-glow {
+  0%, 100% { filter: drop-shadow(0 0 3px rgba(212, 175, 55, .5)); }
+  50%      { filter: drop-shadow(0 0 14px rgba(212, 175, 55, .95)); }
+}
+.nsl-ring-draw {
+  stroke-dasharray: 553;
+  transform: rotate(-90deg);
+  transform-origin: 100px 100px;
+  animation:
+    nsl-ring-draw 1.15s cubic-bezier(.65, 0, .35, 1) both,
+    nsl-ring-glow 2.6s ease-in-out 1.15s infinite;
+}
+
+/* Laurel ticks fade in around the rim */
+@keyframes nsl-tick { to { opacity: .7; } }
+.nsl-tick { opacity: 0; animation: nsl-tick .5s ease both; }
+
+/* Comet tracing the rim */
+@keyframes nsl-comet { to { transform: rotate(360deg); } }
+.nsl-comet {
+  transform-origin: 100px 100px;
+  animation: nsl-comet 2.6s linear infinite;
+  filter: drop-shadow(0 0 7px #f9edbe) drop-shadow(0 0 16px rgba(212, 175, 55, .9));
+}
+
+/* Monogram strokes draw on */
+.nsl-mono {
+  position: relative;
+  width: 46%;
+  height: 46%;
+  overflow: visible;
+}
+@keyframes nsl-draw { to { stroke-dashoffset: 0; } }
+.nsl-draw {
+  stroke-dasharray: 120;
+  stroke-dashoffset: 120;
+  animation: nsl-draw .85s cubic-bezier(.65, 0, .35, 1) both;
+}
+.nsl-draw-n { animation-delay: .3s; }
+.nsl-draw-s { animation-delay: .62s; }
+
+@keyframes nsl-flourish { from { opacity: 0; transform: scaleX(.3); } to { opacity: .9; transform: scaleX(1); } }
+.nsl-flourish {
+  transform-origin: 50px 76px;
+  animation: nsl-flourish .5s ease 1.15s both;
+}
+
+/* Flare burst when the ring closes */
+@keyframes nsl-flare {
+  0%   { opacity: 0; transform: scale(.2); }
+  35%  { opacity: 1; }
+  100% { opacity: 0; transform: scale(2.3); }
+}
+.nsl-flare {
+  position: absolute;
+  inset: 18%;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(circle, rgba(249, 237, 190, .85), rgba(212, 175, 55, .35) 45%, transparent 70%);
+  opacity: 0;
+}
+.nsl-flare.is-on { animation: nsl-flare .9s ease-out both; }
+
+/* ── Wordmark slides up behind a mask ── */
+.nsl-word-mask { overflow: hidden; margin-top: clamp(18px, 3vh, 30px); padding: 0 4px; }
+.nsl-word {
+  font: 700 clamp(28px, 5.4vw, 46px)/1.15 'Noto Sans Kannada', sans-serif;
+  color: #f0d77b;
+  text-shadow: 0 2px 26px rgba(212, 175, 55, .4);
+  transform: translateY(110%);
+  transition: transform .95s cubic-bezier(.16, 1, .3, 1);
+}
+.nsl-word.is-in { transform: translateY(0); }
+
+/* Rule + EVENTS */
+.nsl-rule {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 14px;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity .8s ease .25s, transform .8s ease .25s;
+}
+.nsl-rule.is-in { opacity: 1; transform: translateY(0); }
+.nsl-rule span {
+  display: block;
+  height: 1px;
+  width: clamp(30px, 7vw, 60px);
+  background: linear-gradient(90deg, transparent, #d4af37);
+}
+.nsl-rule span:last-child { background: linear-gradient(90deg, #d4af37, transparent); }
+.nsl-rule em {
+  font: 600 clamp(10px, 1.5vw, 12px)/1 'Poppins', sans-serif;
+  font-style: normal;
+  letter-spacing: .42em;
+  color: #d4af37;
+  text-indent: .42em;
+}
+
+/* Tagline with pulsing dots */
+.nsl-tag {
+  margin: clamp(20px, 4vh, 32px) 0 0;
+  font-size: 12.5px;
+  letter-spacing: .1em;
+  color: rgba(244, 237, 224, .5);
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity .7s ease, transform .7s ease;
+}
+.nsl-tag.is-in { opacity: 1; transform: translateY(0); }
+@keyframes nsl-dot { 0%, 100% { opacity: .2; } 50% { opacity: 1; } }
+.nsl-tag b {
+  font-weight: 400;
+  color: #d4af37;
+  animation: nsl-dot 1.4s ease-in-out infinite;
+}
+.nsl-tag b:nth-of-type(2) { animation-delay: .22s; }
+.nsl-tag b:nth-of-type(3) { animation-delay: .44s; }
+
+/* ── Curtains: slide off-stage on entry, framing the reveal ── */
+@keyframes nsl-curtain-l { from { transform: translateX(0); } to { transform: translateX(-101%); } }
+@keyframes nsl-curtain-r { from { transform: translateX(0); } to { transform: translateX(101%); } }
+.nsl-curtain {
+  position: absolute;
+  top: 0;
+  width: 50.5%;
+  height: 100%;
+  pointer-events: none;
+  background: linear-gradient(180deg, #060b18, #0d1730 55%, #060b18);
+}
+.nsl-curtain-l {
+  left: 0;
+  box-shadow: inset -22px 0 40px -18px rgba(212, 175, 55, .3);
+  animation: nsl-curtain-l 1.15s cubic-bezier(.76, 0, .24, 1) both;
+}
+.nsl-curtain-r {
+  right: 0;
+  box-shadow: inset 22px 0 40px -18px rgba(212, 175, 55, .3);
+  animation: nsl-curtain-r 1.15s cubic-bezier(.76, 0, .24, 1) both;
+}
+
+/* Page reveal once loading finishes */
+@keyframes pl-reveal-page {
+  from { opacity: 0; transform: scale(1.014); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.pl-reveal-page { animation: pl-reveal-page .7s cubic-bezier(.16, 1, .3, 1) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .nsl-spot, .nsl-silk, .nsl-comet, .nsl-ring-glow,
+  .nsl-dust span, .nsl-flare, .nsl-curtain { animation: none !important; }
+  .nsl-curtain { display: none; }
+  .nsl-ring-draw { stroke-dashoffset: 0; animation: none; }
+  .nsl-draw { stroke-dashoffset: 0; animation: none; }
+  .nsl-tick { opacity: .7; animation: none; }
+  .nsl-word { transform: none; }
+  .nsl-rule, .nsl-tag { opacity: 1; transform: none; }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Public food menu — banner + name-only dish chips
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── Category banner ── */
+.fc-banner {
+  position: relative;
+  /* Ratio drives the shape, but max-height stops one category from eating a
+     whole viewport on wide desktops. */
+  aspect-ratio: 16 / 7;
+  min-height: 150px;
+  max-height: 230px;
+  overflow: hidden;
+}
+@media (max-width: 640px) {
+  .fc-banner { aspect-ratio: 16 / 9; min-height: 140px; max-height: 200px; }
+}
+
+/* Two categories per row once there is room, so the menu stays browsable */
+.fc-grid {
+  display: grid;
+  gap: clamp(20px, 2.5vw, 30px);
+  grid-template-columns: 1fr;
+}
+@media (min-width: 1000px) {
+  .fc-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+.fc-banner-img {
+  position: absolute;
+  inset: 0;
+  transform: scale(1.03);
+  transition: transform 1.1s cubic-bezier(.16, 1, .3, 1);
+}
+.fc-banner:hover .fc-banner-img { transform: scale(1.09); }
+
+/* Navy wash so gold type reads over any photograph */
+.fc-banner-scrim {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(8, 17, 40, .93) 0%, rgba(8, 17, 40, .74) 42%, rgba(8, 17, 40, .18) 78%, transparent 100%),
+    linear-gradient(0deg, rgba(8, 17, 40, .58), transparent 62%);
+}
+
+/* Slow gold sheen, echoing the loader's silk sweep */
+@keyframes fc-sheen {
+  0%   { transform: translateX(-120%) rotate(9deg); }
+  100% { transform: translateX(240%) rotate(9deg); }
+}
+.fc-sheen {
+  position: absolute;
+  top: -30%;
+  left: 0;
+  width: 34%;
+  height: 160%;
+  pointer-events: none;
+  background: linear-gradient(100deg, transparent, rgba(240, 215, 123, .13) 48%, transparent);
+  filter: blur(10px);
+  animation: fc-sheen 7s cubic-bezier(.5, 0, .5, 1) infinite;
+}
+
+.fc-banner-body {
+  position: absolute;
+  left: clamp(18px, 3.5vw, 34px);
+  bottom: clamp(16px, 3vw, 26px);
+  right: clamp(18px, 3.5vw, 34px);
+}
+
+.fc-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font: 600 9.5px/1 'Poppins', sans-serif;
+  letter-spacing: .3em;
+  text-transform: uppercase;
+  color: var(--p-gold);
+  margin-bottom: 9px;
+}
+.fc-eyebrow span {
+  display: block;
+  width: 26px;
+  height: 1px;
+  background: var(--p-gold);
+  opacity: .8;
+}
+
+.fc-title {
+  margin: 0;
+  font: 700 clamp(21px, 3.4vw, 33px)/1.15 'Playfair Display', serif;
+  color: #fff;
+  text-shadow: 0 2px 18px rgba(0, 0, 0, .55);
+}
+
+.fc-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px 16px;
+  margin-top: 11px;
+  font: 500 12px/1 'Poppins', sans-serif;
+  color: rgba(244, 237, 224, .8);
+}
+.fc-meta b { color: var(--p-gold-light); font-weight: 700; }
+.fc-diet { display: inline-flex; align-items: center; gap: 6px; }
+
+/* Veg / non-veg indicator */
+.fc-dot {
+  display: inline-block;
+  flex: none;
+  width: 11px;
+  height: 11px;
+  border-radius: 3px;
+}
+.fc-dot-veg {
+  border: 1.5px solid var(--p-veg);
+  background: radial-gradient(circle, var(--p-veg) 34%, transparent 36%);
+}
+.fc-dot-nonveg {
+  border: 1.5px solid var(--p-nonveg);
+  background: radial-gradient(circle, var(--p-nonveg) 34%, transparent 36%);
+}
+
+/* ── Dish chips ── */
+.fc-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  padding: clamp(18px, 3vw, 24px);
+}
+
+@keyframes fc-chip-in {
+  from { opacity: 0; transform: translateY(8px) scale(.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.fc-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--p-deep) 13%, transparent);
+  background: color-mix(in srgb, var(--p-gold) 7%, transparent);
+  font: 500 13px/1 'Poppins', sans-serif;
+  color: var(--p-text);
+  cursor: default;
+  animation: fc-chip-in .5s cubic-bezier(.16, 1, .3, 1) both;
+  transition: transform .24s cubic-bezier(.16, 1, .3, 1), background .24s ease,
+    color .24s ease, border-color .24s ease, box-shadow .24s ease;
+}
+.fc-chip:hover {
+  transform: translateY(-3px);
+  background: linear-gradient(150deg, var(--p-deep), var(--p-deeper));
+  border-color: color-mix(in srgb, var(--p-gold) 45%, transparent);
+  color: var(--p-gold-light);
+  box-shadow: 0 10px 22px -12px color-mix(in srgb, var(--p-deep) 80%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fc-sheen, .fc-chip { animation: none; }
+  .fc-banner:hover .fc-banner-img { transform: scale(1.03); }
+  .fc-chip:hover { transform: none; }
+}
+
+/* Equal-height cards within a grid row, chips pinned below the banner */
+.fc-grid > article {
+  display: flex;
+  flex-direction: column;
+}
+.fc-grid > article .fc-banner { flex: none; }
+.fc-grid > article .fc-chips { flex: 1; align-content: flex-start; }
+
+/* Slightly tighter chips in the narrower two-column layout */
+@media (min-width: 1000px) {
+  .fc-chip { padding: 9px 14px; font-size: 12.5px; }
+}

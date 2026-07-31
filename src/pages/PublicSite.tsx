@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { setDiet, setPublicFilter, openVideo } from '@/features/ui/uiSlice'
 import { ART, artFor, EventIcon } from '@/data/icons'
@@ -6,7 +6,10 @@ import { photoForEventType } from '@/data/eventTypePhotos'
 import { usePublicLanguage } from '@/hooks/usePublicLanguage'
 import { PublicHeader } from '@/components/layout/PublicHeader'
 import { NSLogo, NSLockup } from '@/components/brand/NSLogo'
+import { EventDetailDialog } from '@/components/layout/EventDetailDialog'
+import { PublicLoader } from '@/components/layout/PublicLoader'
 import { fetchEvents, fetchFoods } from '@/features/catalog/catalogThunks'
+import type { EventType } from '@/types'
 
 const pill = (active: boolean) =>
   ({
@@ -107,6 +110,27 @@ const TESTIMONIALS = [
   },
 ]
 
+/** Compact "6 menu items" style chip used on the public cards. */
+function CountChip({ n, label, dot }: { n: number; label: string; dot: string }) {
+  return (
+    <span
+      className="inline-flex items-center gap-[6px]"
+      style={{
+        padding: '6px 11px',
+        borderRadius: 999,
+        background: 'color-mix(in srgb,var(--p-deep) 6%,transparent)',
+        border: '1px solid color-mix(in srgb,var(--p-deep) 11%,transparent)',
+        font: "500 11.5px/1 'Poppins',sans-serif",
+        color: 'var(--p-muted)',
+      }}
+    >
+      <span className="rounded-full" style={{ width: 5, height: 5, background: dot }} />
+      <strong style={{ color: 'var(--p-deep)', fontWeight: 600 }}>{n}</strong>
+      {label}
+    </span>
+  )
+}
+
 export function PublicSite({ standalone = false }: { standalone?: boolean }) {
   const dispatch = useAppDispatch()
   const events = useAppSelector((s) => s.catalog.events)
@@ -116,6 +140,9 @@ export function PublicSite({ standalone = false }: { standalone?: boolean }) {
   const eventsLoaded = useAppSelector((s) => s.catalog.eventsLoaded)
   const foodsLoaded = useAppSelector((s) => s.catalog.foodsLoaded)
   const loading = useAppSelector((s) => s.catalog.loading)
+
+  // Which event's full detail dialog is open
+  const [detail, setDetail] = useState<EventType | null>(null)
 
   // Reads the catalog from the unauthenticated /public endpoints
   useEffect(() => {
@@ -160,11 +187,16 @@ export function PublicSite({ standalone = false }: { standalone?: boolean }) {
   const { lang, setLang, t } = usePublicLanguage(dynamicTexts)
   const kn = lang === 'kn'
 
+  // Hold the page behind the branded splash until both public endpoints have
+  // settled, so customers never see a half-populated site.
+  const ready = eventsLoaded && foodsLoaded
+  if (!ready) return <PublicLoader lang={lang} />
+
   return (
     <>
       <div
         id="top"
-        className="animate-rise"
+        className="animate-rise pl-reveal-page"
         style={standalone ? undefined : { margin: '-26px -32px -70px' }}
       >
         <PublicHeader lang={lang} onLangChange={setLang} />
@@ -535,7 +567,16 @@ export function PublicSite({ standalone = false }: { standalone?: boolean }) {
               </div>
             )}
 
-            <div className="grid gap-6" style={{ gridTemplateColumns: 'repeat(auto-fit,minmax(320px,1fr))' }}>
+            {/* auto-fill (not auto-fit) keeps a lone card at column width instead of
+                stretching it across the container and squashing its 16:9 image.
+                justify-center keeps a part-filled last row balanced. */}
+            <div
+              className="grid gap-6"
+              style={{
+                gridTemplateColumns: 'repeat(auto-fill,minmax(300px,1fr))',
+                justifyContent: 'center',
+              }}
+            >
               {publicList.map((e, i) => {
                 const typePhoto = photoForEventType(e.eventType)
                 const artStyle = e.eventImage
@@ -555,13 +596,20 @@ export function PublicSite({ standalone = false }: { standalone?: boolean }) {
                       border: '1px solid color-mix(in srgb,var(--p-deep) 12%,transparent)',
                       boxShadow: '0 16px 36px -24px color-mix(in srgb,var(--p-deep) 55%,transparent)',
                       animationDelay: `${Math.min(i, 6) * 0.07}s`,
+                      // Cap so a single card keeps card proportions instead of
+                      // spanning the full container width.
+                      maxWidth: 460,
+                      width: '100%',
+                      justifySelf: 'center',
                     }}
                   >
                     <div
                       className="ps-sheen"
                       style={{ height: 5, background: 'linear-gradient(90deg,var(--p-gold-dark),var(--p-gold-light),var(--p-gold-dark))' }}
                     />
-                    <div className="relative overflow-hidden" style={{ height: 208 }}>
+                    {/* 16:9 frame — matches the recommended upload ratio, so photos
+                        are never squashed regardless of column width. */}
+                    <div className="relative overflow-hidden" style={{ aspectRatio: '16 / 9' }}>
                       <div className="absolute inset-0 ps-zoom" style={{ background: artStyle }} />
                       {/* Bottom scrim so the type chip stays legible */}
                       <div
@@ -585,92 +633,112 @@ export function PublicSite({ standalone = false }: { standalone?: boolean }) {
                         {t(e.eventType)}
                       </span>
                       {e.eventVideo && (
-                        <button
-                          onClick={() => dispatch(openVideo({ url: e.eventVideo, title: e.eventTitle }))}
-                          className="absolute flex items-center gap-[6px] uppercase"
+                        <span
+                          className="absolute grid place-items-center"
                           style={{
                             right: 11,
                             top: 11,
-                            padding: '7px 13px',
-                            border: '1px solid color-mix(in srgb,var(--p-gold) 40%,transparent)',
-                            borderRadius: 999,
-                            cursor: 'pointer',
-                            background: 'color-mix(in srgb,var(--p-deeper) 80%,transparent)',
+                            width: 34,
+                            height: 34,
+                            borderRadius: '50%',
+                            border: '1px solid color-mix(in srgb,var(--p-gold) 45%,transparent)',
+                            background: 'color-mix(in srgb,var(--p-deeper) 78%,transparent)',
                             color: 'var(--p-gold-light)',
-                            font: "600 10.5px/1 'Poppins',sans-serif",
-                            letterSpacing: '.06em',
+                            fontSize: 11,
                           }}
+                          title={kn ? 'ಚಿತ್ರ ಲಭ್ಯವಿದೆ' : 'Film available'}
                         >
-                          ▶ {kn ? 'ಚಿತ್ರ ನೋಡಿ' : 'Watch film'}
-                        </button>
+                          ▶
+                        </span>
                       )}
                     </div>
 
-                    <div className="flex items-start gap-[13px]" style={{ padding: '20px 22px 12px' }}>
-                      <div
-                        className="flex-none grid place-items-center"
-                        style={{
-                          width: 44,
-                          height: 44,
-                          borderRadius: 13,
-                          background: 'linear-gradient(150deg,var(--p-deep),var(--p-deeper))',
-                          color: 'var(--p-gold-light)',
-                        }}
-                      >
-                        <EventIcon name={e.eventIcon} />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 style={{ margin: 0, font: "700 19px/1.25 'Playfair Display',serif", color: 'var(--p-deep)' }}>
+                    {/* Light body — title, a single teaser line, and what is
+                        included as counts. Full lists live in the dialog. */}
+                    <div
+                      className="flex flex-col flex-1"
+                      style={{ padding: '18px 20px 20px', gap: 12 }}
+                    >
+                      <div className="flex items-start gap-[12px]">
+                        <div
+                          className="flex-none grid place-items-center"
+                          style={{
+                            width: 40,
+                            height: 40,
+                            borderRadius: 12,
+                            background: 'linear-gradient(150deg,var(--p-deep),var(--p-deeper))',
+                            color: 'var(--p-gold-light)',
+                          }}
+                        >
+                          <EventIcon name={e.eventIcon} />
+                        </div>
+                        <h3
+                          className="flex-1 min-w-0"
+                          style={{
+                            margin: 0,
+                            font: "700 18.5px/1.3 'Playfair Display',serif",
+                            color: 'var(--p-deep)',
+                          }}
+                        >
                           {t(e.eventTitle)}
                         </h3>
-                        <p style={{ margin: '6px 0 0', fontSize: 13, lineHeight: 1.6, color: 'var(--p-muted)' }}>
+                      </div>
+
+                      {e.eventDescription && (
+                        <p
+                          className="ps-clamp-2"
+                          style={{ margin: 0, fontSize: 13, lineHeight: 1.6, color: 'var(--p-muted)' }}
+                        >
                           {t(e.eventDescription)}
                         </p>
-                      </div>
-                    </div>
+                      )}
 
-                    <div
-                      className="grid grid-cols-2 mt-auto"
-                      style={{ borderTop: '1px solid color-mix(in srgb,var(--p-deep) 10%,transparent)' }}
-                    >
-                      <div style={{ padding: '15px 18px 18px' }}>
-                        <p
-                          className="uppercase"
-                          style={{ margin: '0 0 9px', font: "600 10px/1 'Poppins',sans-serif", letterSpacing: '.14em', color: 'var(--p-gold-dark)' }}
-                        >
-                          {kn ? 'ಆಹಾರ' : 'Food'}
-                        </p>
-                        <ul className="list-none m-0 p-0 flex flex-col gap-[6px]">
-                          {e.foodMenu.map((line) => (
-                            <li key={line.id} className="relative text-[13px] leading-tight" style={{ paddingLeft: 14 }}>
-                              <span
-                                className="absolute rounded-full"
-                                style={{ left: 0, top: 6, width: 5, height: 5, background: 'var(--p-rose)' }}
-                              />
-                              {t(line.text)}
-                            </li>
-                          ))}
-                        </ul>
+                      {/* At-a-glance counts replace the two long bullet lists */}
+                      <div className="flex flex-wrap gap-[7px]">
+                        {e.foodMenu.filter((l) => l.text.trim()).length > 0 && (
+                          <CountChip
+                            n={e.foodMenu.filter((l) => l.text.trim()).length}
+                            label={kn ? 'ಆಹಾರ' : 'menu items'}
+                            dot="var(--p-rose)"
+                          />
+                        )}
+                        {e.eventDesign.filter((l) => l.text.trim()).length > 0 && (
+                          <CountChip
+                            n={e.eventDesign.filter((l) => l.text.trim()).length}
+                            label={kn ? 'ವಿನ್ಯಾಸ' : 'décor touches'}
+                            dot="var(--p-gold-dark)"
+                          />
+                        )}
                       </div>
-                      <div style={{ padding: '15px 18px 18px', borderLeft: '1px solid color-mix(in srgb,var(--p-deep) 10%,transparent)' }}>
-                        <p
-                          className="uppercase"
-                          style={{ margin: '0 0 9px', font: "600 10px/1 'Poppins',sans-serif", letterSpacing: '.14em', color: 'var(--p-gold-dark)' }}
-                        >
-                          {kn ? 'ವಿನ್ಯಾಸ' : 'Design'}
-                        </p>
-                        <ul className="list-none m-0 p-0 flex flex-col gap-[6px]">
-                          {e.eventDesign.map((line) => (
-                            <li key={line.id} className="relative text-[13px] leading-tight" style={{ paddingLeft: 14 }}>
-                              <span
-                                className="absolute rounded-full"
-                                style={{ left: 0, top: 6, width: 5, height: 5, background: 'var(--p-gold-dark)' }}
-                              />
-                              {t(line.text)}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
+
+                      <button
+                        onClick={() => setDetail(e)}
+                        className="flex items-center justify-between mt-auto"
+                        style={{
+                          width: '100%',
+                          marginTop: 'auto',
+                          padding: '11px 15px',
+                          borderRadius: 11,
+                          cursor: 'pointer',
+                          border: '1px solid color-mix(in srgb,var(--p-deep) 16%,transparent)',
+                          background: 'color-mix(in srgb,var(--p-gold) 8%,transparent)',
+                          color: 'var(--p-deep)',
+                          font: "600 12.5px/1 'Poppins',sans-serif",
+                          transition: 'all .22s ease',
+                        }}
+                        onMouseEnter={(ev) => {
+                          ev.currentTarget.style.background = 'var(--p-deep)'
+                          ev.currentTarget.style.color = 'var(--p-gold-light)'
+                        }}
+                        onMouseLeave={(ev) => {
+                          ev.currentTarget.style.background =
+                            'color-mix(in srgb,var(--p-gold) 8%,transparent)'
+                          ev.currentTarget.style.color = 'var(--p-deep)'
+                        }}
+                      >
+                        {kn ? 'ವಿವರಗಳನ್ನು ನೋಡಿ' : 'View details'}
+                        <span style={{ fontSize: 14 }}>→</span>
+                      </button>
                     </div>
                   </article>
                 )
@@ -736,87 +804,78 @@ export function PublicSite({ standalone = false }: { standalone?: boolean }) {
               </p>
             )}
 
-            <div className="flex flex-col gap-[34px]">
-              {foodSections.map((cat) => (
-                <div key={cat.id}>
-                  <div className="flex items-center gap-[14px]" style={{ marginBottom: 16 }}>
-                    <div
-                      style={{
-                        width: 56,
-                        height: 56,
-                        flex: 'none',
-                        borderRadius: 15,
-                        border: '1.5px solid color-mix(in srgb,var(--p-gold) 55%,transparent)',
-                        background: cat.foodtypeimage
-                          ? `center/cover no-repeat url(${cat.foodtypeimage})`
-                          : artFor(cat.foodType),
-                      }}
-                    />
-                    <div className="min-w-0">
-                      <h3 style={{ margin: 0, font: "700 20px/1.2 'Playfair Display',serif", color: 'var(--p-deep)' }}>
-                        {t(cat.foodType)}
-                      </h3>
-                      <p style={{ margin: '3px 0 0', fontSize: 12.5, color: 'var(--p-muted)' }}>
-                        {kn ? `${cat.ds.length} ಭಕ್ಷ್ಯಗಳು ಲಭ್ಯವಿದೆ` : `${cat.ds.length} dishes available`}
-                      </p>
-                    </div>
-                    <span
-                      style={{
-                        flex: 1,
-                        height: 1,
-                        marginLeft: 8,
-                        background: 'linear-gradient(90deg,color-mix(in srgb,var(--p-gold) 55%,transparent),transparent)',
-                      }}
-                    />
-                  </div>
-                  <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fill,minmax(238px,1fr))' }}>
-                    {cat.ds.map((d) => (
+            <div className="fc-grid">
+              {foodSections.map((cat, ci) => {
+                const veg = cat.ds.filter((d) => d.isVeg).length
+                const nonVeg = cat.ds.length - veg
+                return (
+                  <article
+                    key={cat.id}
+                    className="ps-reveal overflow-hidden"
+                    style={{
+                      borderRadius: 20,
+                      background: 'var(--p-card)',
+                      border: '1px solid color-mix(in srgb,var(--p-gold) 30%,transparent)',
+                      boxShadow: '0 20px 46px -30px color-mix(in srgb,var(--p-deep) 60%,transparent)',
+                      animationDelay: `${Math.min(ci, 5) * 0.07}s`,
+                    }}
+                  >
+                    {/* Cinematic category banner — the image finally gets room */}
+                    <div className="fc-banner">
                       <div
-                        key={d.id}
-                        className="ps-card flex gap-[12px] items-center"
+                        className="fc-banner-img"
                         style={{
-                          background: 'var(--p-card)',
-                          border: '1px solid color-mix(in srgb,var(--p-deep) 12%,transparent)',
-                          borderRadius: 13,
-                          padding: '11px 13px',
+                          background: cat.foodtypeimage
+                            ? `center/cover no-repeat url(${cat.foodtypeimage})`
+                            : artFor(cat.foodType),
                         }}
-                      >
-                        <div
-                          style={{
-                            width: 48,
-                            height: 48,
-                            flex: 'none',
-                            borderRadius: 10,
-                            background: d.dishImage
-                              ? `center/cover no-repeat url(${d.dishImage})`
-                              : artFor(d.dishName),
-                          }}
-                        />
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-[7px]">
-                            <span
-                              style={{
-                                width: 12,
-                                height: 12,
-                                flex: 'none',
-                                borderRadius: 3,
-                                border: `1.6px solid ${d.isVeg ? 'var(--p-veg)' : 'var(--p-nonveg)'}`,
-                                background: `radial-gradient(circle,${d.isVeg ? 'var(--p-veg)' : 'var(--p-nonveg)'} 34%,transparent 36%)`,
-                              }}
-                            />
-                            <span className="font-semibold text-[13.5px]" style={{ color: 'var(--p-text)' }}>
-                              {t(d.dishName)}
+                      />
+                      {/* Navy scrim keeps the title legible over any photo */}
+                      <div className="fc-banner-scrim" />
+                      <div className="fc-sheen" />
+
+                      <div className="fc-banner-body">
+                        <div className="fc-eyebrow">
+                          <span />
+                          {kn ? 'ಮೆನು' : 'Menu'}
+                        </div>
+                        <h3 className="fc-title">{t(cat.foodType)}</h3>
+                        <div className="fc-meta">
+                          <span>
+                            <b>{cat.ds.length}</b> {kn ? 'ಭಕ್ಷ್ಯಗಳು' : 'dishes'}
+                          </span>
+                          {veg > 0 && (
+                            <span className="fc-diet">
+                              <i className="fc-dot fc-dot-veg" />
+                              {veg} {kn ? 'ಸಸ್ಯಾಹಾರಿ' : 'veg'}
                             </span>
-                          </div>
-                          <p style={{ margin: '3px 0 0', fontSize: 11.5, lineHeight: 1.45, color: 'var(--p-muted)' }}>
-                            {t(d.dishDescription)}
-                          </p>
+                          )}
+                          {nonVeg > 0 && (
+                            <span className="fc-diet">
+                              <i className="fc-dot fc-dot-nonveg" />
+                              {nonVeg} {kn ? 'ಮಾಂಸಾಹಾರಿ' : 'non-veg'}
+                            </span>
+                          )}
                         </div>
                       </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
+                    </div>
+
+                    {/* Name-only chips — light, scannable, no repeated placeholders */}
+                    <div className="fc-chips">
+                      {cat.ds.map((d, di) => (
+                        <span
+                          key={d.id}
+                          className="fc-chip"
+                          style={{ animationDelay: `${Math.min(di, 12) * 0.035}s` }}
+                        >
+                          <i className={`fc-dot ${d.isVeg ? 'fc-dot-veg' : 'fc-dot-nonveg'}`} />
+                          {t(d.dishName)}
+                        </span>
+                      ))}
+                    </div>
+                  </article>
+                )
+              })}
             </div>
           </section>
 
@@ -1122,6 +1181,17 @@ export function PublicSite({ standalone = false }: { standalone?: boolean }) {
           </footer>
         </div>
       </div>
+
+      <EventDetailDialog
+        event={detail}
+        lang={lang}
+        t={t}
+        onClose={() => setDetail(null)}
+        onPlayVideo={(url, title) => {
+          setDetail(null)
+          dispatch(openVideo({ url, title }))
+        }}
+      />
 
       {/* Floating book button */}
       <a

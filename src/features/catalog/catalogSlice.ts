@@ -70,6 +70,9 @@ const catalogSlice = createSlice({
       .addCase(fetchEvents.rejected, (state, action) => {
         state.loading = false
         state.error = action.payload ?? 'Failed to load event types'
+        // Mark as settled even on failure — the public page gates its render on
+        // this flag, and must not trap visitors on the loader forever.
+        state.eventsLoaded = true
       })
 
       .addCase(fetchFoods.pending, (state) => {
@@ -84,6 +87,7 @@ const catalogSlice = createSlice({
       .addCase(fetchFoods.rejected, (state, action) => {
         state.loading = false
         state.error = action.payload ?? 'Failed to load food categories'
+        state.foodsLoaded = true
       })
 
       .addCase(saveEvent.pending, (state) => {
