@@ -10,7 +10,7 @@ import { EventDetailDialog } from '@/components/layout/EventDetailDialog'
 import { PublicLoader } from '@/components/layout/PublicLoader'
 import { LazyImage } from '@/components/layout/LazyImage'
 import { fetchEvents, fetchFoods } from '@/features/catalog/catalogThunks'
-import type { EventType } from '@/types'
+import type { EventType, IconKey } from '@/types'
 
 const pill = (active: boolean) =>
   ({
@@ -25,43 +25,39 @@ const pill = (active: boolean) =>
     boxShadow: active ? '0 8px 18px -10px color-mix(in srgb,var(--p-deep) 70%,transparent)' : 'none',
   }) as React.CSSProperties
 
-/** Trust metrics shown under the hero. */
-const STATS = [
-  { value: '500+', en: 'Events Delivered', kn: 'ಪೂರ್ಣಗೊಂಡ ಈವೆಂಟ್‌ಗಳು' },
-  { value: '12', en: 'Years of Craft', kn: 'ವರ್ಷಗಳ ಅನುಭವ' },
-  { value: '50k+', en: 'Guests Hosted', kn: 'ಅತಿಥಿಗಳು' },
-  { value: '4.9★', en: 'Client Rating', kn: 'ಗ್ರಾಹಕ ರೇಟಿಂಗ್' },
-]
-
-/** What the company does, shown when the catalog is still empty. */
-const SERVICES = [
+/**
+ * Honest commitments shown under the hero. Deliberately not headline numbers —
+ * this is a new company, so these are promises we can keep on day one rather
+ * than counts of work not yet done.
+ */
+const PROMISES: { icon: IconKey; en: string; kn: string; enSub: string; knSub: string }[] = [
   {
-    icon: 'rings' as const,
-    en: 'Weddings & Receptions',
-    kn: 'ಮದುವೆ ಮತ್ತು ಆರತಕ್ಷತೆ',
-    enDesc: 'Full-scale mandap design, muhurta timing and guest hospitality handled end to end.',
-    knDesc: 'ಸಂಪೂರ್ಣ ಮಂಟಪ ವಿನ್ಯಾಸ, ಮುಹೂರ್ತ ಸಮಯ ಮತ್ತು ಅತಿಥಿ ಸತ್ಕಾರ.',
+    icon: 'rings',
+    en: 'One Team, End to End',
+    kn: 'ಒಂದೇ ತಂಡ, ಆರಂಭದಿಂದ ಕೊನೆಗೆ',
+    enSub: 'Décor, catering and coordination under one roof — no juggling vendors.',
+    knSub: 'ಅಲಂಕಾರ, ಅಡುಗೆ ಮತ್ತು ಸಂಯೋಜನೆ ಒಂದೇ ಸೂರಿನಡಿ.',
   },
   {
-    icon: 'cake' as const,
-    en: 'Birthdays & Naming Days',
-    kn: 'ಹುಟ್ಟುಹಬ್ಬ ಮತ್ತು ನಾಮಕರಣ',
-    enDesc: 'Themed décor, custom cakes and entertainment sized for intimate or grand gatherings.',
-    knDesc: 'ಥೀಮ್ ಅಲಂಕಾರ, ಕಸ್ಟಮ್ ಕೇಕ್ ಮತ್ತು ಮನರಂಜನೆ.',
+    icon: 'plant',
+    en: 'In-House Kitchen',
+    kn: 'ಸ್ವಂತ ಅಡುಗೆಮನೆ',
+    enSub: 'Our own chefs and menus. Taste it before you commit to it.',
+    knSub: 'ನಮ್ಮದೇ ಬಾಣಸಿಗರು. ಬುಕ್ ಮಾಡುವ ಮೊದಲು ರುಚಿ ನೋಡಿ.',
   },
   {
-    icon: 'briefcase' as const,
-    en: 'Corporate & Launches',
-    kn: 'ಕಾರ್ಪೊರೇಟ್ ಮತ್ತು ಉದ್ಘಾಟನೆ',
-    enDesc: 'Conferences, product launches and annual days with stage, AV and catering managed.',
-    knDesc: 'ಸಮ್ಮೇಳನ, ಉತ್ಪನ್ನ ಬಿಡುಗಡೆ ಮತ್ತು ವಾರ್ಷಿಕೋತ್ಸವ.',
+    icon: 'briefcase',
+    en: 'Transparent Pricing',
+    kn: 'ಪಾರದರ್ಶಕ ಬೆಲೆ',
+    enSub: 'A written quote that holds. No surprises on the invoice.',
+    knSub: 'ಲಿಖಿತ ಬೆಲೆ ಪಟ್ಟಿ. ಕೊನೆಯಲ್ಲಿ ಯಾವುದೇ ಅಚ್ಚರಿ ಇಲ್ಲ.',
   },
   {
-    icon: 'plant' as const,
-    en: 'Traditional Ceremonies',
-    kn: 'ಸಾಂಪ್ರದಾಯಿಕ ಸಮಾರಂಭಗಳು',
-    enDesc: 'Gruhapravesha, upanayana and pooja arrangements with authentic ritual support.',
-    knDesc: 'ಗೃಹಪ್ರವೇಶ, ಉಪನಯನ ಮತ್ತು ಪೂಜಾ ವ್ಯವಸ್ಥೆ.',
+    icon: 'camera',
+    en: 'Free Consultation',
+    kn: 'ಉಚಿತ ಸಮಾಲೋಚನೆ',
+    enSub: 'Sit with us, plan it out, decide later. Costs you nothing.',
+    knSub: 'ನಮ್ಮೊಂದಿಗೆ ಕುಳಿತು ಯೋಜಿಸಿ, ನಂತರ ನಿರ್ಧರಿಸಿ.',
   },
 ]
 
@@ -90,26 +86,69 @@ const PROCESS = [
   },
 ]
 
-const TESTIMONIALS = [
+/**
+ * Event-type groups for the portfolio filter. 19 flat pills was unreadable, so
+ * types are bucketed; anything unmatched falls into "Social & Others".
+ * `match` holds lowercase eventType values as stored in MongoDB.
+ */
+const EVENT_GROUPS: {
+  key: string
+  en: string
+  kn: string
+  icon: IconKey
+  match: string[]
+}[] = [
   {
-    en: 'They turned our daughter’s wedding into something the whole family still talks about. Every detail was handled before we could even ask.',
-    kn: 'ನಮ್ಮ ಮಗಳ ಮದುವೆಯನ್ನು ಇಡೀ ಕುಟುಂಬ ಇನ್ನೂ ನೆನಪಿಸಿಕೊಳ್ಳುವಂತೆ ಮಾಡಿದರು. ಪ್ರತಿಯೊಂದು ವಿವರವೂ ಮೊದಲೇ ಸಿದ್ಧವಾಗಿತ್ತು.',
-    name: 'Lakshmi & Ravi',
-    role: { en: 'Wedding, Davangere', kn: 'ಮದುವೆ, ದಾವಣಗೆರೆ' },
+    key: 'weddings',
+    en: 'Weddings',
+    kn: 'ಮದುವೆ',
+    icon: 'rings',
+    match: ['wedding', 'engagement', 'reception', 'mehendi & sangeet', 'haldi'],
   },
   {
-    en: 'Our annual day for 800 guests ran without a single hitch. The catering was genuinely the best we have served.',
-    kn: '800 ಅತಿಥಿಗಳ ನಮ್ಮ ವಾರ್ಷಿಕೋತ್ಸವ ಯಾವುದೇ ತೊಂದರೆಯಿಲ್ಲದೆ ನಡೆಯಿತು. ಅಡುಗೆ ನಿಜವಾಗಿಯೂ ಅತ್ಯುತ್ತಮವಾಗಿತ್ತು.',
-    name: 'Suresh Kumar',
-    role: { en: 'Corporate Event', kn: 'ಕಾರ್ಪೊರೇಟ್ ಈವೆಂಟ್' },
+    key: 'ceremonies',
+    en: 'Ceremonies',
+    kn: 'ಸಮಾರಂಭ',
+    icon: 'plant',
+    match: [
+      'gruhapravesha',
+      'namakarana',
+      'upanayana',
+      'seemantha',
+      'shashtiabdapoorthi',
+      'satyanarayana pooja',
+      'ritu shanti',
+    ],
   },
   {
-    en: 'Warm, professional and completely reliable. They made our gruhapravesha feel sacred and effortless at once.',
-    kn: 'ಆತ್ಮೀಯ, ವೃತ್ತಿಪರ ಮತ್ತು ಸಂಪೂರ್ಣ ವಿಶ್ವಾಸಾರ್ಹ. ನಮ್ಮ ಗೃಹಪ್ರವೇಶವನ್ನು ಪವಿತ್ರವಾಗಿಸಿದರು.',
-    name: 'Anitha Prasad',
-    role: { en: 'Gruhapravesha', kn: 'ಗೃಹಪ್ರವೇಶ' },
+    key: 'milestones',
+    en: 'Milestones',
+    kn: 'ಸಂಭ್ರಮ',
+    icon: 'cake',
+    match: ['birthday', 'anniversary'],
+  },
+  {
+    key: 'corporate',
+    en: 'Corporate',
+    kn: 'ಕಾರ್ಪೊರೇಟ್',
+    icon: 'briefcase',
+    match: ['corporate event', 'product launch'],
+  },
+  {
+    key: 'social',
+    en: 'Social',
+    kn: 'ಸಾಮಾಜಿಕ',
+    icon: 'music',
+    match: ['school function', 'get-together', 'festival event'],
   },
 ]
+
+/** Which group a stored eventType belongs to. */
+function groupOf(eventType: string): string {
+  const v = eventType.trim().toLowerCase()
+  const hit = EVENT_GROUPS.find((g) => g.match.includes(v))
+  return hit ? hit.key : 'social'
+}
 
 /** Compact "6 menu items" style chip used on the public cards. */
 function CountChip({ n, label, dot }: { n: number; label: string; dot: string }) {
@@ -156,8 +195,27 @@ export function PublicSite({ standalone = false }: { standalone?: boolean }) {
     if (e.eventType && !types.includes(e.eventType)) types.push(e.eventType)
   })
 
+  // publicFilter is 'all', a group key, or a specific eventType
+  const isGroupFilter = EVENT_GROUPS.some((g) => g.key === publicFilter)
   const publicList =
-    publicFilter === 'all' ? events : events.filter((e) => e.eventType === publicFilter)
+    publicFilter === 'all'
+      ? events
+      : isGroupFilter
+        ? events.filter((e) => groupOf(e.eventType) === publicFilter)
+        : events.filter((e) => e.eventType === publicFilter)
+
+  // Groups that actually have events, with counts for the tab badges
+  const activeGroups = EVENT_GROUPS.map((g) => ({
+    ...g,
+    count: events.filter((e) => groupOf(e.eventType) === g.key).length,
+  })).filter((g) => g.count > 0)
+
+  // Types inside the selected group, for the secondary chip row
+  const subTypes = isGroupFilter
+    ? Array.from(
+        new Set(events.filter((e) => groupOf(e.eventType) === publicFilter).map((e) => e.eventType)),
+      )
+    : []
 
   const foodSections = foods
     .map((c) => {
@@ -188,6 +246,19 @@ export function PublicSite({ standalone = false }: { standalone?: boolean }) {
   const { lang, setLang, t } = usePublicLanguage(dynamicTexts)
   const kn = lang === 'kn'
 
+  // Up to 7 real event photos for the hero deck, widest variety of types first
+  const heroPhotos = useMemo(() => {
+    const seen = new Set<string>()
+    const picked: { id: string; src: string; label: string }[] = []
+    for (const e of events) {
+      if (!e.eventImage || seen.has(e.eventType)) continue
+      seen.add(e.eventType)
+      picked.push({ id: e.id, src: e.eventImage, label: e.eventType })
+      if (picked.length === 7) break
+    }
+    return picked
+  }, [events])
+
   // Hold the page behind the branded splash until both public endpoints have
   // settled, so customers never see a half-populated site.
   const ready = eventsLoaded && foodsLoaded
@@ -197,6 +268,7 @@ export function PublicSite({ standalone = false }: { standalone?: boolean }) {
     <>
       <div
         id="top"
+        data-lang={lang}
         className="animate-rise pl-reveal-page"
         style={standalone ? undefined : { margin: '-26px -32px -70px' }}
       >
@@ -211,9 +283,8 @@ export function PublicSite({ standalone = false }: { standalone?: boolean }) {
         >
           {/* ══════════════ HERO ══════════════ */}
           <header
-            className="relative text-center overflow-hidden"
+            className="ps-hero relative text-center overflow-hidden"
             style={{
-              padding: 'clamp(56px,9vw,96px) 24px clamp(48px,7vw,78px)',
               background:
                 'linear-gradient(165deg,#050a18,var(--p-deeper) 42%,var(--p-deep) 78%,var(--p-deep-2))',
             }}
@@ -280,22 +351,27 @@ export function PublicSite({ standalone = false }: { standalone?: boolean }) {
                 className="ps-reveal"
                 style={{
                   margin: '0 0 16px',
-                  font: "600 11px/1 'Poppins',sans-serif",
-                  letterSpacing: '.34em',
-                  textTransform: 'uppercase',
+                  font: kn
+                    ? "600 12.5px/1.5 'Noto Sans Kannada',sans-serif"
+                    : "600 11px/1 'Poppins',sans-serif",
+                  // Kannada is a conjunct script — letter-spacing breaks ligatures
+                  letterSpacing: kn ? 'normal' : '.34em',
+                  textTransform: kn ? 'none' : 'uppercase',
                   color: 'var(--p-gold)',
                   animationDelay: '.06s',
                 }}
               >
-                {kn ? 'ದಾವಣಗೆರೆ • ಸ್ಥಾಪನೆ ೨೦೧೩' : 'Davangere • Est. 2013'}
+                {kn ? 'ದಾವಣಗೆರೆ • ಈವೆಂಟ್ ಯೋಜನೆ ಮತ್ತು ಅಡುಗೆ' : 'Davangere • Event Planning & Catering'}
               </p>
 
               <h1
                 className="m-0 ps-reveal"
                 style={{
-                  font: "900 clamp(40px,8vw,74px)/1.08 'Noto Sans Kannada',sans-serif",
+                  // Tiro Kannada has a true italic cut; Noto Sans Kannada does not,
+                  // so faux-slanting it would distort the glyphs.
+                  font: "italic 400 clamp(42px,8.4vw,80px)/1.14 'Tiro Kannada',serif",
                   color: 'var(--p-gold-light)',
-                  textShadow: '0 3px 22px rgba(0,0,0,.55)',
+                  textShadow: '0 3px 26px rgba(0,0,0,.6)',
                   animationDelay: '.12s',
                 }}
               >
@@ -306,8 +382,10 @@ export function PublicSite({ standalone = false }: { standalone?: boolean }) {
                 className="flex items-center justify-center gap-4 ps-reveal"
                 style={{
                   margin: '14px 0 18px',
-                  font: "700 clamp(18px,3vw,26px)/1 'Playfair Display',serif",
-                  letterSpacing: '.3em',
+                  font: kn
+                    ? "600 clamp(15px,2.2vw,20px)/1.6 'Noto Sans Kannada',sans-serif"
+                    : "700 clamp(18px,3vw,26px)/1 'Playfair Display',serif",
+                  letterSpacing: kn ? 'normal' : '.3em',
                   color: '#f4ede0',
                   animationDelay: '.18s',
                 }}
@@ -320,7 +398,9 @@ export function PublicSite({ standalone = false }: { standalone?: boolean }) {
               <p
                 className="m-0 ps-reveal"
                 style={{
-                  font: "700 clamp(22px,3.2vw,30px)/1.3 'Dancing Script',cursive",
+                  font: kn
+                    ? "600 clamp(17px,2.4vw,23px)/1.6 'Noto Sans Kannada',sans-serif"
+                    : "700 clamp(22px,3.2vw,30px)/1.3 'Dancing Script',cursive",
                   color: 'var(--p-gold-light)',
                   animationDelay: '.24s',
                 }}
@@ -330,26 +410,10 @@ export function PublicSite({ standalone = false }: { standalone?: boolean }) {
                   : 'Making Every Celebration Memorable'}
               </p>
 
-              <p
-                className="mx-auto ps-reveal"
-                style={{
-                  maxWidth: 540,
-                  margin: '20px auto 0',
-                  fontSize: 14.5,
-                  lineHeight: 1.7,
-                  color: 'rgba(244,237,224,.72)',
-                  animationDelay: '.3s',
-                }}
-              >
-                {kn
-                  ? 'ಮದುವೆಯಿಂದ ಕಾರ್ಪೊರೇಟ್ ಸಮಾರಂಭಗಳವರೆಗೆ — ಅಲಂಕಾರ, ಅಡುಗೆ ಮತ್ತು ಆತಿಥ್ಯವನ್ನು ಒಂದೇ ಸೂರಿನಡಿ ನಿರ್ವಹಿಸುತ್ತೇವೆ.'
-                  : 'From intimate ceremonies to grand receptions — décor, catering and hospitality, all managed under one roof.'}
-              </p>
-
               {/* CTAs */}
               <div
                 className="flex flex-wrap items-center justify-center gap-[13px] ps-reveal"
-                style={{ marginTop: 32, animationDelay: '.36s' }}
+                style={{ marginTop: 34, animationDelay: '.3s' }}
               >
                 <a
                   href="/book"
@@ -385,104 +449,63 @@ export function PublicSite({ standalone = false }: { standalone?: boolean }) {
                 </a>
               </div>
             </div>
+
+            {/* Fanned deck of real event photos — fills the hero's base with
+                actual work rather than abstract shapes. */}
+            {heroPhotos.length > 0 && (
+              <div className="hd" aria-hidden="true">
+                <div className="hd-glow" />
+                <div className="hd-fan">
+                  {heroPhotos.map((ph, i) => (
+                    <span
+                      className="hd-card"
+                      key={ph.id}
+                      style={{ ['--i' as string]: i - (heroPhotos.length - 1) / 2 }}
+                    >
+                      <img src={ph.src} alt="" loading="lazy" decoding="async" />
+                      <em>{t(ph.label)}</em>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Scroll cue — only when no photo deck is present, since the deck
+                itself already signals there is more below. */}
+            {heroPhotos.length === 0 && (
+              <a href="#promise" className="ps-scroll" aria-label={kn ? 'ಕೆಳಗೆ ಸ್ಕ್ರಾಲ್ ಮಾಡಿ' : 'Scroll down'}>
+                <span className="ps-scroll-txt">{kn ? 'ಕೆಳಗೆ ನೋಡಿ' : 'Scroll'}</span>
+                <span className="ps-scroll-line" />
+              </a>
+            )}
           </header>
 
-          {/* ══════════════ STATS ══════════════ */}
-          <section
-            style={{
-              background: 'linear-gradient(90deg,var(--p-deeper),var(--p-deep) 50%,var(--p-deeper))',
-              borderTop: '1px solid color-mix(in srgb,var(--p-gold) 26%,transparent)',
-              borderBottom: '1px solid color-mix(in srgb,var(--p-gold) 26%,transparent)',
-            }}
-          >
-            <div
-              className="mx-auto grid text-center"
-              style={{
-                maxWidth: 1000,
-                padding: 'clamp(26px,4vw,40px) 24px',
-                gridTemplateColumns: 'repeat(auto-fit,minmax(140px,1fr))',
-                gap: 24,
-              }}
-            >
-              {STATS.map((s) => (
-                <div key={s.en}>
-                  <div className="ps-stat-value">{s.value}</div>
-                  <div className="ps-stat-label">{kn ? s.kn : s.en}</div>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* ══════════════ SERVICES ══════════════ */}
-          <section
-            className="ps-grain"
-            style={{ padding: 'clamp(52px,7vw,80px) 24px clamp(20px,3vw,30px)' }}
-          >
-            <div className="relative mx-auto" style={{ maxWidth: 1180 }}>
-              <div className="text-center" style={{ marginBottom: 40 }}>
-                <p className="ps-eyebrow m-0">{kn ? 'ನಮ್ಮ ಸೇವೆಗಳು' : 'What We Do'}</p>
+          {/* ══════════════ OUR PROMISE ══════════════ */}
+          <section id="promise" className="pr-sec ps-grain">
+            <div className="pr-inner">
+              <div className="text-center" style={{ marginBottom: 'clamp(30px,4vw,46px)' }}>
+                <p className="ps-eyebrow m-0">{kn ? 'ನಮ್ಮ ಭರವಸೆ' : 'Why Choose Us'}</p>
                 <h2 className="ps-title">
-                  {kn ? 'ಪ್ರತಿ ಸಂದರ್ಭಕ್ಕೂ ಪರಿಪೂರ್ಣ ಯೋಜನೆ' : 'Crafted For Every Occasion'}
+                  {kn ? 'ನಮ್ಮ ಬದ್ಧತೆ' : 'Our Promise To You'}
                 </h2>
                 <div className="ps-rule" style={{ marginTop: 16 }}>
                   <NSLogo size={22} showRing={false} />
                 </div>
               </div>
 
-              <div
-                className="grid"
-                style={{ gridTemplateColumns: 'repeat(auto-fit,minmax(250px,1fr))', gap: 20 }}
-              >
-                {SERVICES.map((s, i) => (
+              <div className="pr-grid">
+                {PROMISES.map((p, i) => (
                   <article
-                    key={s.en}
-                    className="ps-card ps-reveal flex flex-col"
-                    style={{
-                      background: 'var(--p-card)',
-                      borderRadius: 18,
-                      padding: '30px 24px 26px',
-                      border: '1px solid color-mix(in srgb,var(--p-gold) 30%,transparent)',
-                      boxShadow: '0 14px 34px -24px color-mix(in srgb,var(--p-deep) 55%,transparent)',
-                      animationDelay: `${i * 0.08}s`,
-                    }}
+                    key={p.en}
+                    className="pr-card"
+                    style={{ animationDelay: `${i * 0.09}s` }}
                   >
-                    <div
-                      className="grid place-items-center"
-                      style={{
-                        width: 58,
-                        height: 58,
-                        borderRadius: 16,
-                        marginBottom: 18,
-                        background: 'linear-gradient(150deg,var(--p-deep),var(--p-deeper))',
-                        color: 'var(--p-gold-light)',
-                        border: '1px solid color-mix(in srgb,var(--p-gold) 32%,transparent)',
-                        boxShadow: '0 8px 20px -10px color-mix(in srgb,var(--p-deep) 80%,transparent)',
-                      }}
-                    >
-                      {/* Shared icon renders at 20px — scale up for this hero-sized tile */}
-                      <span style={{ display: 'flex', transform: 'scale(1.45)' }}>
-                        <EventIcon name={s.icon} />
-                      </span>
-                    </div>
-                    <h3
-                      style={{
-                        margin: '0 0 9px',
-                        font: "700 18px/1.3 'Playfair Display',serif",
-                        color: 'var(--p-deep)',
-                      }}
-                    >
-                      {kn ? s.kn : s.en}
-                    </h3>
-                    <p
-                      style={{
-                        margin: 0,
-                        fontSize: 13.5,
-                        lineHeight: 1.65,
-                        color: 'var(--p-muted)',
-                      }}
-                    >
-                      {kn ? s.knDesc : s.enDesc}
-                    </p>
+                    <span className="pr-num">{String(i + 1).padStart(2, '0')}</span>
+                    <span className="pr-ico">
+                      <EventIcon name={p.icon} />
+                    </span>
+                    <h4>{kn ? p.kn : p.en}</h4>
+                    <p>{kn ? p.knSub : p.enSub}</p>
                   </article>
                 ))}
               </div>
@@ -510,16 +533,63 @@ export function PublicSite({ standalone = false }: { standalone?: boolean }) {
               </p>
             </div>
 
-            {types.length > 0 && (
-              <div className="flex justify-center flex-wrap gap-[9px]" style={{ marginBottom: 30 }}>
-                <button style={pill(publicFilter === 'all')} onClick={() => dispatch(setPublicFilter('all'))}>
-                  {kn ? 'ಎಲ್ಲಾ ಈವೆಂಟ್‌ಗಳು' : 'All Events'}
-                </button>
-                {types.map((ty) => (
-                  <button key={ty} style={pill(publicFilter === ty)} onClick={() => dispatch(setPublicFilter(ty))}>
-                    {t(ty)}
+            {activeGroups.length > 0 && (
+              <div style={{ marginBottom: 28 }}>
+                {/* Primary: grouped category tabs */}
+                <div className="ev-tabs">
+                  <button
+                    className={`ev-tab ${publicFilter === 'all' ? 'is-active' : ''}`}
+                    onClick={() => dispatch(setPublicFilter('all'))}
+                  >
+                    <span className="ev-tab-ico">
+                      <NSLogo size={19} showRing={false} />
+                    </span>
+                    <span className="ev-tab-txt">
+                      {kn ? 'ಎಲ್ಲಾ' : 'All'}
+                      <b>{events.length}</b>
+                    </span>
                   </button>
-                ))}
+
+                  {activeGroups.map((g) => (
+                    <button
+                      key={g.key}
+                      className={`ev-tab ${publicFilter === g.key ? 'is-active' : ''}`}
+                      onClick={() => dispatch(setPublicFilter(g.key))}
+                    >
+                      <span className="ev-tab-ico">
+                        <EventIcon name={g.icon} />
+                      </span>
+                      <span className="ev-tab-txt">
+                        {kn ? g.kn : g.en}
+                        <b>{g.count}</b>
+                      </span>
+                    </button>
+                  ))}
+                </div>
+
+                {/* Secondary: specific types within the chosen group */}
+                {subTypes.length > 1 && (
+                  <div className="ev-subrow">
+                    {subTypes.map((ty) => (
+                      <button
+                        key={ty}
+                        className="ev-sub"
+                        onClick={() => dispatch(setPublicFilter(ty))}
+                      >
+                        {t(ty)}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {/* Breadcrumb when a single type is selected */}
+                {!isGroupFilter && publicFilter !== 'all' && (
+                  <div className="ev-subrow">
+                    <button className="ev-sub is-active" onClick={() => dispatch(setPublicFilter('all'))}>
+                      {t(publicFilter)} <span style={{ opacity: 0.6, marginLeft: 4 }}>×</span>
+                    </button>
+                  </div>
+                )}
               </div>
             )}
 
@@ -935,85 +1005,6 @@ export function PublicSite({ standalone = false }: { standalone?: boolean }) {
             </div>
           </section>
 
-          {/* ══════════════ TESTIMONIALS ══════════════ */}
-          <section
-            style={{
-              padding: 'clamp(52px,7vw,80px) 24px',
-              background: 'linear-gradient(165deg,var(--p-deeper),var(--p-deep) 60%,var(--p-deep-2))',
-            }}
-          >
-            <div className="mx-auto" style={{ maxWidth: 1120 }}>
-              <div className="text-center" style={{ marginBottom: 40 }}>
-                <p className="ps-eyebrow m-0" style={{ color: 'var(--p-gold)' }}>
-                  {kn ? 'ಗ್ರಾಹಕರ ಮಾತು' : 'Kind Words'}
-                </p>
-                <h2 className="ps-title" style={{ color: 'var(--p-gold-light)' }}>
-                  {kn ? 'ನಮ್ಮ ಕುಟುಂಬಗಳು ಹೇಳುವುದು' : 'What Our Families Say'}
-                </h2>
-              </div>
-
-              <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: 20 }}>
-                {TESTIMONIALS.map((tst, i) => (
-                  <figure
-                    key={tst.name}
-                    className="ps-reveal m-0 flex flex-col"
-                    style={{
-                      padding: '30px 26px 24px',
-                      borderRadius: 18,
-                      background: 'rgba(255,255,255,.05)',
-                      border: '1px solid color-mix(in srgb,var(--p-gold) 26%,transparent)',
-                      backdropFilter: 'blur(6px)',
-                      animationDelay: `${i * 0.1}s`,
-                    }}
-                  >
-                    <div
-                      style={{
-                        font: "700 44px/1 'Playfair Display',serif",
-                        color: 'var(--p-gold)',
-                        opacity: 0.55,
-                        height: 26,
-                      }}
-                    >
-                      “
-                    </div>
-                    <blockquote
-                      className="m-0 flex-1"
-                      style={{ fontSize: 13.5, lineHeight: 1.75, color: 'rgba(244,237,224,.86)' }}
-                    >
-                      {kn ? tst.kn : tst.en}
-                    </blockquote>
-                    <figcaption
-                      className="flex items-center gap-[11px]"
-                      style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid rgba(255,255,255,.1)' }}
-                    >
-                      <div
-                        className="grid place-items-center flex-none"
-                        style={{
-                          width: 38,
-                          height: 38,
-                          borderRadius: '50%',
-                          background: 'linear-gradient(150deg,var(--p-gold),var(--p-gold-dark))',
-                          color: '#12182c',
-                          font: "700 14px/1 'Playfair Display',serif",
-                        }}
-                      >
-                        {tst.name.charAt(0)}
-                      </div>
-                      <div>
-                        <div style={{ font: "600 13.5px/1.2 'Poppins',sans-serif", color: 'var(--p-gold-light)' }}>
-                          {tst.name}
-                        </div>
-                        <div style={{ fontSize: 11.5, color: 'rgba(244,237,224,.55)', marginTop: 3 }}>
-                          {kn ? tst.role.kn : tst.role.en}
-                        </div>
-                      </div>
-                    </figcaption>
-                  </figure>
-                ))}
-              </div>
-            </div>
-          </section>
-
           {/* ══════════════ CLOSING CTA ══════════════ */}
           <section
             className="ps-grain text-center"
@@ -1081,8 +1072,8 @@ export function PublicSite({ standalone = false }: { standalone?: boolean }) {
                   }}
                 >
                   {kn
-                    ? 'ದಾವಣಗೆರೆಯಲ್ಲಿ ೨೦೧೩ ರಿಂದ ಸ್ಮರಣೀಯ ಆಚರಣೆಗಳನ್ನು ರೂಪಿಸುತ್ತಿದ್ದೇವೆ.'
-                    : 'Designing memorable celebrations across Davangere since 2013.'}
+                    ? 'ದಾವಣಗೆರೆ ಮತ್ತು ಸುತ್ತಮುತ್ತ ಸ್ಮರಣೀಯ ಆಚರಣೆಗಳನ್ನು ರೂಪಿಸುತ್ತೇವೆ.'
+                    : 'Designing memorable celebrations across Davangere and around.'}
                 </p>
               </div>
 
