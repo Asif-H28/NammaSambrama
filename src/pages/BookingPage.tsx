@@ -9,6 +9,7 @@ import {
   goToStep,
   setContact,
   resetBooking,
+  pruneSelections,
 } from '@/features/booking/bookingSlice'
 import { showToast } from '@/features/ui/uiSlice'
 import { submitEnquiry } from '@/features/enquiries/enquiriesThunks'
@@ -25,12 +26,6 @@ const STEPS = [
   { key: 'menu', en: 'Menu', kn: 'ಮೆನು' },
   { key: 'review', en: 'Review', kn: 'ಪರಿಶೀಲನೆ' },
 ] as const
-
-const fieldStyle = {
-  background: 'var(--p-bg)',
-  color: 'var(--p-text)',
-  border: '1.4px solid color-mix(in srgb,var(--p-deep) 18%,transparent)',
-}
 
 export function BookingPage() {
   const dispatch = useAppDispatch()
@@ -89,6 +84,12 @@ export function BookingPage() {
     if (!customName.trim()) return
     dispatch(chooseCustomEvent(customName.trim()))
   }
+
+  // Once the catalogue loads, discard any selection ids it no longer contains
+  useEffect(() => {
+    if (!foodsLoaded || !foods.length) return
+    dispatch(pruneSelections(foods.flatMap((c) => c.dishlist.map((d) => d.id))))
+  }, [foodsLoaded, foods, dispatch])
 
   const selectedDishes = foods.flatMap((c) => c.dishlist.filter((d) => booking.selectedDishIds.includes(d.id)))
 
@@ -189,95 +190,34 @@ export function BookingPage() {
   )
 }
 
+/** Compact progress rail — steps stay legible on a phone. */
 function BookingHero({ lang, stepIndex }: { lang: 'en' | 'kn'; stepIndex: number }) {
+  const kn = lang === 'kn'
   return (
-    <div
-      className="relative overflow-hidden text-center"
-      style={{
-        padding: '46px 24px 34px',
-        background: 'linear-gradient(160deg,var(--p-deeper),var(--p-deep) 55%,var(--p-deep-2))',
-      }}
-    >
-      <div
-        className="absolute inset-0"
-        style={{ background: 'radial-gradient(720px 220px at 50% 0%,color-mix(in srgb,var(--p-gold) 26%,transparent),transparent 70%)' }}
-      />
-      {/* decorative floating motifs for festivity */}
-      <div className="absolute" style={{ left: '8%', top: '18%', fontSize: 26, opacity: 0.35, transform: 'rotate(-12deg)' }}>✦</div>
-      <div className="absolute" style={{ right: '10%', top: '30%', fontSize: 20, opacity: 0.3, transform: 'rotate(14deg)' }}>✦</div>
-      <div className="absolute" style={{ left: '18%', bottom: '14%', fontSize: 16, opacity: 0.25 }}>✦</div>
-      <div className="absolute" style={{ right: '20%', bottom: '20%', fontSize: 22, opacity: 0.28, transform: 'rotate(-8deg)' }}>✦</div>
-
-      <div className="relative">
-        <p
-          className="uppercase m-0"
-          style={{ font: "700 11px/1 'Poppins',sans-serif", letterSpacing: '.24em', color: 'var(--p-gold)', marginBottom: 10 }}
-        >
-          {lang === 'kn' ? '✨ ಬುಕಿಂಗ್ ಪ್ರಾರಂಭಿಸಿ ✨' : '✨ Start your booking ✨'}
-        </p>
-        <h1
-          className="m-0"
-          style={{ font: "700 clamp(26px,4vw,38px)/1.2 'Playfair Display',serif", color: 'var(--p-gold-light)', textShadow: '0 2px 8px rgba(0,0,0,.5)' }}
-        >
-          {lang === 'kn' ? 'ನಿಮ್ಮ ಕನಸಿನ ಆಚರಣೆಯನ್ನು ವಿನ್ಯಾಸಗೊಳಿಸಿ' : 'Design your dream celebration'}
+    <header className="bk-hero">
+      <div className="bk-hero-inner">
+        <p className="bk-kicker">{kn ? 'ಬುಕಿಂಗ್ ಪ್ರಾರಂಭಿಸಿ' : 'Start your booking'}</p>
+        <h1 className="bk-title">
+          {kn ? 'ನಿಮ್ಮ ಕನಸಿನ ಆಚರಣೆ' : 'Design your dream celebration'}
         </h1>
-        <p
-          style={{
-            maxWidth: 480,
-            margin: '10px auto 0',
-            fontSize: 14.5,
-            textAlign: 'center',
-            color: 'rgba(255,255,255,.75)',
-            fontFamily: "'Poppins',sans-serif",
-          }}
-        >
-          {lang === 'kn'
-            ? 'ಕೆಲವು ಸುಲಭ ಹಂತಗಳಲ್ಲಿ ನಿಮ್ಮ ಪರಿಪೂರ್ಣ ಈವೆಂಟ್ ಮೆನುವನ್ನು ರಚಿಸಿ.'
-            : "A few easy steps to craft the perfect menu for your special day."}
-        </p>
 
-        <div className="flex items-center justify-center gap-[8px] flex-wrap" style={{ marginTop: 26 }}>
-          {STEPS.map((s, i) => (
-            <div key={s.key} className="flex items-center gap-[8px]">
-              <div
-                className="flex items-center gap-[8px]"
-                style={{
-                  padding: '8px 16px',
-                  borderRadius: 999,
-                  background: i <= stepIndex ? 'var(--p-gold)' : 'rgba(255,255,255,.08)',
-                  color: i <= stepIndex ? 'var(--p-deeper)' : 'rgba(255,255,255,.55)',
-                  font: "700 12.5px/1 'Poppins',sans-serif",
-                  boxShadow: i === stepIndex ? '0 0 0 5px color-mix(in srgb,var(--p-gold) 25%,transparent)' : 'none',
-                  transition: 'box-shadow .25s ease',
-                }}
-              >
-                <span
-                  className="grid place-items-center"
-                  style={{
-                    width: 19,
-                    height: 19,
-                    borderRadius: '50%',
-                    fontSize: 10.5,
-                    background: i <= stepIndex ? 'var(--p-deeper)' : 'transparent',
-                    color: i <= stepIndex ? 'var(--p-gold-light)' : 'rgba(255,255,255,.55)',
-                    border: i <= stepIndex ? 'none' : '1.4px solid rgba(255,255,255,.4)',
-                  }}
-                >
-                  {i + 1}
-                </span>
-                {lang === 'kn' ? s.kn : s.en}
-              </div>
-              {i < STEPS.length - 1 && (
-                <span style={{ width: 24, height: 1.5, background: i < stepIndex ? 'var(--p-gold)' : 'rgba(255,255,255,.25)', borderRadius: 2 }} />
-              )}
-            </div>
+        <ol className="bk-rail">
+          {STEPS.map((st, i) => (
+            <li
+              key={st.key}
+              className={`bk-rail-step ${i === stepIndex ? 'is-now' : ''} ${i < stepIndex ? 'is-done' : ''}`}
+            >
+              <span className="bk-rail-dot">{i < stepIndex ? '✓' : i + 1}</span>
+              <span className="bk-rail-lbl">{kn ? st.kn : st.en}</span>
+            </li>
           ))}
-        </div>
+        </ol>
       </div>
-    </div>
+    </header>
   )
 }
 
+/* ── Step 1: choose the occasion ───────────────────────────────── */
 function EventTypeStep({
   eventTypes,
   lang,
@@ -292,163 +232,104 @@ function EventTypeStep({
   t: (s: string) => string
   customName: string
   setCustomName: (v: string) => void
-  onPick: (eventTypeId: string) => void
+  onPick: (id: string) => void
   onCustomSubmit: () => void
 }) {
-  return (
-    <div className="animate-rise">
-      <h2 className="text-center" style={{ font: "700 30px/1.2 'Playfair Display',serif", color: 'var(--p-deep)', margin: '0 0 8px' }}>
-        {lang === 'kn' ? 'ನಾವು ಏನನ್ನು ಆಚರಿಸುತ್ತಿದ್ದೇವೆ?' : 'What are we celebrating? 🎊'}
-      </h2>
-      <p
-        style={{
-          fontSize: 14.5,
-          textAlign: 'center',
-          color: 'var(--p-muted)',
-          margin: '0 auto 34px',
-          maxWidth: 480,
-        }}
-      >
-        {lang === 'kn'
-          ? 'ಪಟ್ಟಿಯಲ್ಲಿ ಇಲ್ಲದಿದ್ದರೆ, ಕೆಳಗೆ ನಿಮ್ಮ ಈವೆಂಟ್ ಹೆಸರನ್ನು ಸೇರಿಸಿ.'
-          : "Tap a celebration below to get started — or tell us your own, and we'll build the menu together."}
-      </p>
+  const kn = lang === 'kn'
+  const [query, setQuery] = useState('')
+  const [showCustom, setShowCustom] = useState(false)
 
-      <div className="grid gap-6" style={{ gridTemplateColumns: 'repeat(auto-fill,minmax(240px,1fr))' }}>
-        {eventTypes.map(([type, ev]) => {
-          const typePhoto = photoForEventType(type)
-          const bg = ev.eventImage
-            ? `center/cover no-repeat url(${ev.eventImage})`
-            : typePhoto
-              ? `center/cover no-repeat url(${typePhoto})`
-              : ev.eventIcon
-                ? ART[ev.eventIcon]
-                : artFor(type)
+  const filtered = query.trim()
+    ? eventTypes.filter(([type]) => t(type).toLowerCase().includes(query.trim().toLowerCase()))
+    : eventTypes
+
+  return (
+    <section>
+      <div className="bk-head">
+        <h2 className="bk-h2">{kn ? 'ಯಾವ ಸಂದರ್ಭ?' : 'What are we celebrating?'}</h2>
+        <p className="bk-sub">
+          {kn
+            ? 'ಕೆಳಗಿನ ಆಚರಣೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ — ಅಥವಾ ನಿಮ್ಮದೇ ತಿಳಿಸಿ.'
+            : 'Pick a celebration below — or tell us your own.'}
+        </p>
+      </div>
+
+      {/* Search keeps 19 options manageable */}
+      {eventTypes.length > 8 && (
+        <div className="bk-search">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <circle cx="11" cy="11" r="7" />
+            <path d="m20 20-3.5-3.5" />
+          </svg>
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder={kn ? 'ಹುಡುಕಿ…' : 'Search celebrations…'}
+            aria-label={kn ? 'ಹುಡುಕಿ' : 'Search celebrations'}
+          />
+          {query && (
+            <button onClick={() => setQuery('')} aria-label={kn ? 'ತೆರವುಗೊಳಿಸಿ' : 'Clear'}>
+              ×
+            </button>
+          )}
+        </div>
+      )}
+
+      <div className="bk-grid">
+        {filtered.map(([type, ev]) => {
+          const photo = ev.eventImage || photoForEventType(type)
           return (
-            <button
-              key={type}
-              onClick={() => onPick(ev.id)}
-              className="group relative flex flex-col overflow-hidden text-left"
-              style={{
-                borderRadius: 20,
-                border: '2px solid transparent',
-                cursor: 'pointer',
-                height: 230,
-                background: bg,
-                boxShadow: '0 18px 36px -18px color-mix(in srgb,var(--p-deep) 65%,transparent)',
-                transition: 'transform .25s cubic-bezier(.2,.9,.3,1.2), box-shadow .25s ease, border-color .25s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-6px) scale(1.02)'
-                e.currentTarget.style.boxShadow = '0 26px 48px -16px color-mix(in srgb,var(--p-deep) 70%,transparent)'
-                e.currentTarget.style.borderColor = 'var(--p-gold)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'none'
-                e.currentTarget.style.boxShadow = '0 18px 36px -18px color-mix(in srgb,var(--p-deep) 65%,transparent)'
-                e.currentTarget.style.borderColor = 'transparent'
-              }}
-            >
-              <div
-                className="absolute inset-0"
-                style={{ background: 'linear-gradient(195deg,transparent 28%,rgba(0,0,0,.78) 100%)' }}
-              />
-              <div
-                className="absolute inset-0 opacity-0 group-hover:opacity-100"
-                style={{ background: 'linear-gradient(160deg,color-mix(in srgb,var(--p-gold) 22%,transparent),transparent 55%)', transition: 'opacity .25s ease' }}
-              />
-              <div
-                className="absolute grid place-items-center"
-                style={{
-                  left: 14,
-                  top: 14,
-                  width: 42,
-                  height: 42,
-                  borderRadius: 12,
-                  background: 'color-mix(in srgb,var(--p-gold) 92%,transparent)',
-                  color: 'var(--p-deeper)',
-                  boxShadow: '0 6px 16px rgba(0,0,0,.35)',
-                }}
-              >
-                <EventIcon name={ev.eventIcon} />
-              </div>
-              <div className="relative mt-auto" style={{ padding: '0 18px 18px' }}>
-                <div style={{ font: "700 19px/1.25 'Playfair Display',serif", color: '#fff', textShadow: '0 2px 8px rgba(0,0,0,.55)' }}>
-                  {t(type)}
-                </div>
-                <div
-                  className="flex items-center gap-[6px]"
-                  style={{ marginTop: 8, font: "700 12px/1 'Poppins',sans-serif", color: 'var(--p-gold-light)' }}
-                >
-                  <span
-                    className="grid place-items-center transition-transform group-hover:translate-x-[3px]"
-                    style={{ transition: 'transform .2s ease' }}
-                  >
-                    {lang === 'kn' ? 'ಆಯ್ಕೆಮಾಡಿ' : 'Choose this'} →
-                  </span>
-                </div>
-              </div>
+            <button key={ev.id} className="bk-card" onClick={() => onPick(ev.id)}>
+              <span className="bk-card-media">
+                {photo ? (
+                  <img src={photo} alt="" loading="lazy" decoding="async" />
+                ) : (
+                  <span className="bk-card-art" style={{ background: ev.eventIcon ? ART[ev.eventIcon] : artFor(type) }} />
+                )}
+              </span>
+              <span className="bk-card-body">
+                <span className="bk-card-ico">
+                  <EventIcon name={ev.eventIcon} />
+                </span>
+                <span className="bk-card-name">{t(type)}</span>
+              </span>
+              <span className="bk-card-check">✓</span>
             </button>
           )
         })}
       </div>
 
-      <div className="mx-auto flex items-center gap-[10px]" style={{ margin: '38px 0 20px', maxWidth: 560 }}>
-        <span style={{ flex: 1, height: 1, background: 'linear-gradient(90deg,transparent,color-mix(in srgb,var(--p-deep) 30%,transparent))' }} />
-        <span
-          className="uppercase flex-none"
-          style={{ font: "700 11.5px/1 'Poppins',sans-serif", letterSpacing: '.14em', color: 'var(--p-gold-dark)', padding: '0 4px' }}
-        >
-          {lang === 'kn' ? 'ಅಥವಾ' : 'or something else?'}
-        </span>
-        <span style={{ flex: 1, height: 1, background: 'linear-gradient(90deg,color-mix(in srgb,var(--p-deep) 30%,transparent),transparent)' }} />
-      </div>
+      {filtered.length === 0 && (
+        <p className="bk-empty">{kn ? 'ಯಾವುದೂ ಸಿಗಲಿಲ್ಲ.' : 'No match — try your own below.'}</p>
+      )}
 
-      <div
-        className="mx-auto flex items-center gap-[14px] flex-wrap"
-        style={{
-          maxWidth: 560,
-          padding: 20,
-          borderRadius: 18,
-          background: 'linear-gradient(150deg,color-mix(in srgb,var(--p-gold) 14%,var(--p-card)),var(--p-card))',
-          border: '2px dashed color-mix(in srgb,var(--p-gold-dark) 55%,transparent)',
-          boxShadow: '0 14px 30px -20px color-mix(in srgb,var(--p-deep) 40%,transparent)',
-        }}
-      >
-        <div
-          className="grid place-items-center flex-none"
-          style={{ width: 42, height: 42, borderRadius: 12, background: 'color-mix(in srgb,var(--p-gold) 24%,transparent)', color: 'var(--p-gold-dark)', fontSize: 18 }}
-        >
-          ✎
-        </div>
-        <input
-          className="input flex-1 min-w-[180px]"
-          placeholder={lang === 'kn' ? 'ನಿಮ್ಮ ಈವೆಂಟ್ ಹೆಸರನ್ನು ಬರೆಯಿರಿ...' : "Have something else in mind? Type it here..."}
-          value={customName}
-          onChange={(e) => setCustomName(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && customName.trim()) onCustomSubmit()
-          }}
-          style={fieldStyle}
-        />
-        <button
-          className="btn"
-          disabled={!customName.trim()}
-          onClick={onCustomSubmit}
-          style={{
-            background: customName.trim() ? 'var(--p-gold)' : 'transparent',
-            color: customName.trim() ? 'var(--p-deeper)' : 'var(--p-muted)',
-            border: `1.5px solid ${customName.trim() ? 'var(--p-gold)' : 'var(--p-muted)'}`,
-            fontWeight: 700,
-          }}
-        >
-          {lang === 'kn' ? 'ಮುಂದುವರಿಸಿ →' : 'Continue →'}
-        </button>
+      {/* Custom occasion */}
+      <div className="bk-custom">
+        {!showCustom ? (
+          <button className="bk-link" onClick={() => setShowCustom(true)}>
+            {kn ? '+ ಬೇರೆ ಸಂದರ್ಭವೇ? ನಮಗೆ ತಿಳಿಸಿ' : "+ Something else? Tell us about it"}
+          </button>
+        ) : (
+          <div className="bk-custom-row">
+            <input
+              value={customName}
+              autoFocus
+              onChange={(e) => setCustomName(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && onCustomSubmit()}
+              placeholder={kn ? 'ಉದಾ. ನಿವೃತ್ತಿ ಸಮಾರಂಭ' : 'e.g. Retirement party'}
+              aria-label={kn ? 'ನಿಮ್ಮ ಸಂದರ್ಭ' : 'Your occasion'}
+            />
+            <button className="bk-btn bk-btn-primary" disabled={!customName.trim()} onClick={onCustomSubmit}>
+              {kn ? 'ಮುಂದೆ' : 'Continue'} →
+            </button>
+          </div>
+        )}
       </div>
-    </div>
+    </section>
   )
 }
 
+/* ── Step 2: menu, optional and skippable ──────────────────────── */
 function MenuStep({
   foods,
   booking,
@@ -471,7 +352,7 @@ function MenuStep({
   lang: 'en' | 'kn'
   t: (s: string) => string
   addingFor: string | null
-  setAddingFor: (id: string | null) => void
+  setAddingFor: (v: string | null) => void
   newItemName: string
   setNewItemName: (v: string) => void
   onToggleDish: (id: string) => void
@@ -480,229 +361,247 @@ function MenuStep({
   onBack: () => void
   onNext: () => void
 }) {
-  const totalSelected = booking.selectedDishIds.length + booking.customItems.length
+  const kn = lang === 'kn'
+  const [query, setQuery] = useState('')
+  const [diet, setDiet] = useState<'all' | 'veg' | 'nonveg'>('all')
+  const [cartOpen, setCartOpen] = useState(false)
+  const [activeCat, setActiveCat] = useState(foods[0]?.id ?? '')
+
+  const q = query.trim().toLowerCase()
+
+  // Filter by diet and search; keep the category grouping like a real menu
+  const sections = foods
+    .map((c) => ({
+      ...c,
+      ds: c.dishlist.filter((d) => {
+        if (diet !== 'all' && (diet === 'veg') !== d.isVeg) return false
+        if (!q) return true
+        return (
+          t(d.dishName).toLowerCase().includes(q) ||
+          t(d.dishDescription || '').toLowerCase().includes(q)
+        )
+      }),
+    }))
+    .filter((c) => c.ds.length)
+
+  // Resolve selections by id so each chosen dish appears exactly once, and any
+  // id that is no longer in the catalogue is ignored rather than rendering a
+  // phantom row that cannot be removed.
+  const dishById = new Map(foods.flatMap((c) => c.dishlist.map((d) => [d.id, d] as const)))
+  const selectedDishes = Array.from(new Set(booking.selectedDishIds))
+    .map((id) => dishById.get(id))
+    .filter((d): d is import('@/types').Dish => Boolean(d))
+
+  // Stale ids (e.g. saved before the catalogue changed) would otherwise keep
+  // the counter above the number of removable rows.
+  const staleCount = new Set(booking.selectedDishIds).size - selectedDishes.length
+
+  const chosenCount = selectedDishes.length + booking.customItems.length
+
+  const jumpTo = (id: string) => {
+    setActiveCat(id)
+    document.getElementById(`cat-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
 
   return (
-    <div className="animate-rise">
-      <div
-        className="flex items-center justify-between flex-wrap gap-3"
-        style={{
-          marginBottom: 6,
-          padding: '18px 22px',
-          borderRadius: 18,
-          background: 'linear-gradient(150deg,color-mix(in srgb,var(--p-gold) 12%,var(--p-card)),var(--p-card))',
-          border: '1.5px solid color-mix(in srgb,var(--p-gold-dark) 28%,transparent)',
-          boxShadow: '0 12px 26px -20px color-mix(in srgb,var(--p-deep) 40%,transparent)',
-        }}
-      >
-        <div>
-          <p className="uppercase m-0" style={{ font: "700 10.5px/1 'Poppins',sans-serif", letterSpacing: '.16em', color: 'var(--p-gold-dark)', marginBottom: 5 }}>
-            {lang === 'kn' ? '🎈 ನಿಮ್ಮ ಈವೆಂಟ್' : '🎈 Your event'}
-          </p>
-          <h2 style={{ font: "700 23px/1.2 'Playfair Display',serif", color: 'var(--p-deep)', margin: 0 }}>
-            {eventLabel}
-          </h2>
-        </div>
-        <span
-          className="flex items-center gap-[7px]"
-          style={{
-            padding: '9px 18px',
-            borderRadius: 999,
-            background: totalSelected ? 'var(--p-deep)' : 'color-mix(in srgb,var(--p-deep) 10%,transparent)',
-            color: totalSelected ? 'var(--p-gold-light)' : 'var(--p-muted)',
-            font: "700 13.5px/1 'Poppins',sans-serif",
-          }}
-        >
-          🍽️ {lang === 'kn' ? `${totalSelected} ಆಯ್ಕೆಮಾಡಲಾಗಿದೆ` : `${totalSelected} item${totalSelected === 1 ? '' : 's'} selected`}
-        </span>
+    <section>
+      <div className="bk-head">
+        <p className="bk-crumb">
+          <button className="bk-link" onClick={onBack}>← {kn ? 'ಬದಲಾಯಿಸಿ' : 'Change'}</button>
+          <b>{eventLabel}</b>
+        </p>
+        <h2 className="bk-h2">{kn ? 'ಮೆನು ಆಯ್ಕೆ' : 'Choose your menu'}</h2>
+        <p className="bk-sub">
+          {kn
+            ? 'ಇಷ್ಟವಾದ ಭಕ್ಷ್ಯಗಳನ್ನು ಸೇರಿಸಿ — ಅಥವಾ ಬಿಟ್ಟುಬಿಡಿ, ನಾವು ಸಲಹೆ ನೀಡುತ್ತೇವೆ.'
+            : "Add what you like — or skip it and we'll advise during the consultation."}
+        </p>
       </div>
-      <p className="text-[14px]" style={{ color: 'var(--p-muted)', margin: '16px 0 28px' }}>
-        {lang === 'kn'
-          ? 'ನಿಮಗೆ ಬೇಕಾದ ಭಕ್ಷ್ಯಗಳನ್ನು ಆಯ್ಕೆಮಾಡಿ. ಪಟ್ಟಿಯಲ್ಲಿ ಇಲ್ಲದಿದ್ದರೆ, ಪ್ರತಿ ವಿಭಾಗದಲ್ಲಿ ಸೇರಿಸಬಹುದು.'
-          : "Pick the dishes you'd like — tap a card to add it to your menu. Don't see something? Add it under any category."}
-      </p>
 
-      <div className="flex flex-col gap-[30px]">
-        {foods.map((cat) => {
-          const customForCat = booking.customItems.filter((c) => c.categoryId === cat.id)
-          const catSelected = cat.dishlist.filter((d) => booking.selectedDishIds.includes(d.id)).length + customForCat.length
-          return (
-            <div key={cat.id}>
-              <div className="flex items-center gap-[12px] mb-[14px]">
-                <div
-                  style={{
-                    width: 48,
-                    height: 48,
-                    flex: 'none',
-                    borderRadius: 13,
-                    border: '2px solid color-mix(in srgb,var(--p-gold) 50%,transparent)',
-                    background: cat.foodtypeimage ? `center/cover no-repeat url(${cat.foodtypeimage})` : artFor(cat.foodType),
-                    boxShadow: '0 6px 14px -8px color-mix(in srgb,var(--p-deep) 50%,transparent)',
-                  }}
-                />
-                <h3 style={{ margin: 0, font: "700 18px/1.2 'Playfair Display',serif", color: 'var(--p-deep)' }}>
-                  {t(cat.foodType)}
-                </h3>
-                {catSelected > 0 && (
-                  <span
-                    className="grid place-items-center"
-                    style={{ minWidth: 24, height: 24, padding: '0 7px', borderRadius: 999, background: 'var(--p-gold)', color: 'var(--p-deeper)', font: "700 11.5px/1 'Poppins',sans-serif" }}
-                  >
-                    {catSelected}
-                  </span>
-                )}
-                <span style={{ flex: 1, height: 1, background: 'color-mix(in srgb,var(--p-deep) 10%,transparent)' }} />
+      {/* Sticky toolbar: search + veg filter, as on a food-delivery menu */}
+      <div className="mn-tools">
+        <div className="mn-search">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <circle cx="11" cy="11" r="7" />
+            <path d="m20 20-3.5-3.5" />
+          </svg>
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder={kn ? 'ಭಕ್ಷ್ಯ ಹುಡುಕಿ…' : 'Search dishes…'}
+            aria-label={kn ? 'ಭಕ್ಷ್ಯ ಹುಡುಕಿ' : 'Search dishes'}
+          />
+          {query && (
+            <button onClick={() => setQuery('')} aria-label={kn ? 'ತೆರವು' : 'Clear'}>×</button>
+          )}
+        </div>
+        <div className="mn-diet">
+          {([
+            { k: 'all', en: 'All', kn: 'ಎಲ್ಲಾ' },
+            { k: 'veg', en: 'Veg', kn: 'ಸಸ್ಯ' },
+            { k: 'nonveg', en: 'Non-veg', kn: 'ಮಾಂಸ' },
+          ] as const).map((o) => (
+            <button
+              key={o.k}
+              className={diet === o.k ? 'is-on' : ''}
+              onClick={() => setDiet(o.k)}
+            >
+              {o.k !== 'all' && (
+                <i className={o.k === 'veg' ? 'fc-dot fc-dot-veg' : 'fc-dot fc-dot-nonveg'} />
+              )}
+              {kn ? o.kn : o.en}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="mn-body">
+        {/* Left rail — jump between courses, desktop only */}
+        <nav className="mn-rail">
+          {sections.map((c) => {
+            const n = c.ds.filter((d) => booking.selectedDishIds.includes(d.id)).length
+            return (
+              <button
+                key={c.id}
+                className={c.id === activeCat ? 'is-on' : ''}
+                onClick={() => jumpTo(c.id)}
+              >
+                <span>{t(c.foodType)}</span>
+                {n > 0 ? <b>{n}</b> : <em>{c.ds.length}</em>}
+              </button>
+            )
+          })}
+        </nav>
+
+        {/* The menu itself */}
+        <div className="mn-list">
+          {sections.map((c) => (
+            <div className="mn-sec" id={`cat-${c.id}`} key={c.id}>
+              <div className="mn-sec-hd">
+                <h3>{t(c.foodType)}</h3>
+                <span>{c.ds.length} {kn ? 'ಭಕ್ಷ್ಯಗಳು' : 'items'}</span>
               </div>
 
-              <div className="grid gap-[10px]" style={{ gridTemplateColumns: 'repeat(auto-fill,minmax(230px,1fr))' }}>
-                {cat.dishlist.map((d) => {
-                  const checked = booking.selectedDishIds.includes(d.id)
-                  return (
-                    <label
-                      key={d.id}
-                      className="flex items-center gap-[11px]"
-                      style={{
-                        padding: '12px 14px',
-                        borderRadius: 13,
-                        cursor: 'pointer',
-                        background: checked ? 'color-mix(in srgb,var(--p-gold) 16%,var(--p-card))' : 'var(--p-card)',
-                        border: `2px solid ${checked ? 'var(--p-gold-dark)' : 'color-mix(in srgb,var(--p-deep) 12%,transparent)'}`,
-                        boxShadow: checked ? '0 6px 16px -10px color-mix(in srgb,var(--p-gold-dark) 60%,transparent)' : 'none',
-                        transition: 'all .15s ease',
-                      }}
-                    >
-                      <span
-                        className="grid place-items-center flex-none"
-                        style={{
-                          width: 20,
-                          height: 20,
-                          borderRadius: 6,
-                          background: checked ? 'var(--p-gold)' : 'transparent',
-                          border: `1.6px solid ${checked ? 'var(--p-gold)' : 'color-mix(in srgb,var(--p-deep) 35%,transparent)'}`,
-                          color: 'var(--p-deeper)',
-                          fontSize: 13,
-                          fontWeight: 700,
-                        }}
-                      >
-                        {checked ? '✓' : ''}
-                      </span>
-                      <input type="checkbox" checked={checked} onChange={() => onToggleDish(d.id)} style={{ display: 'none' }} />
-                      <span
-                        style={{
-                          width: 10,
-                          height: 10,
-                          flex: 'none',
-                          borderRadius: 3,
-                          border: `1.5px solid ${d.isVeg ? 'var(--p-veg)' : 'var(--p-nonveg)'}`,
-                          background: `radial-gradient(circle,${d.isVeg ? 'var(--p-veg)' : 'var(--p-nonveg)'} 34%,transparent 36%)`,
-                        }}
-                      />
-                      <span className="text-[13.5px] min-w-0 flex-1" style={{ color: 'var(--p-text)', fontWeight: checked ? 600 : 400 }}>
+              {c.ds.map((d) => {
+                const on = booking.selectedDishIds.includes(d.id)
+                return (
+                  <div className={`mn-row ${on ? 'is-on' : ''}`} key={d.id}>
+                    <div className="mn-row-txt">
+                      <p className="mn-row-name">
+                        <i className={d.isVeg ? 'fc-dot fc-dot-veg' : 'fc-dot fc-dot-nonveg'} />
                         {t(d.dishName)}
+                      </p>
+                      {d.dishDescription && <p className="mn-row-desc">{t(d.dishDescription)}</p>}
+                    </div>
+                    {d.dishImage && (
+                      <span className="mn-row-img">
+                        <img src={d.dishImage} alt="" loading="lazy" decoding="async" />
                       </span>
-                    </label>
-                  )
-                })}
-
-                {customForCat.map((c) => (
-                  <div
-                    key={c.id}
-                    className="flex items-center justify-between gap-[8px]"
-                    style={{
-                      padding: '12px 14px',
-                      borderRadius: 13,
-                      background: 'color-mix(in srgb,var(--p-rose) 16%,var(--p-card))',
-                      border: '2px dashed var(--p-rose)',
-                    }}
-                  >
-                    <span className="text-[13.5px] min-w-0 flex-1" style={{ color: 'var(--p-text)', fontWeight: 600 }}>
-                      {c.name}{' '}
-                      <span style={{ fontSize: 10.5, color: 'var(--p-rose)', textTransform: 'uppercase', fontWeight: 700 }}>
-                        {lang === 'kn' ? '(ಹೊಸದು)' : '(added)'}
-                      </span>
-                    </span>
+                    )}
                     <button
-                      onClick={() => onRemoveCustom(c.id)}
-                      style={{ border: 0, background: 'transparent', cursor: 'pointer', color: 'var(--p-muted)', fontSize: 18, lineHeight: 1 }}
-                      aria-label="remove"
+                      className={`mn-add ${on ? 'is-on' : ''}`}
+                      onClick={() => onToggleDish(d.id)}
+                      aria-pressed={on}
+                      aria-label={`${on ? 'Remove' : 'Add'} ${d.dishName}`}
                     >
-                      &times;
+                      {on ? (kn ? '✓ ಸೇರಿಸಲಾಗಿದೆ' : '✓ Added') : kn ? '+ ಸೇರಿಸಿ' : '+ Add'}
                     </button>
                   </div>
-                ))}
-              </div>
+                )
+              })}
 
-              {addingFor === cat.id ? (
-                <div className="flex items-center gap-[8px] mt-[12px]">
+              {/* Request an off-menu dish for this course */}
+              {addingFor !== c.id ? (
+                <button className="mn-req" onClick={() => setAddingFor(c.id)}>
+                  {kn ? '+ ಬೇರೆ ಭಕ್ಷ್ಯ ಕೇಳಿ' : '+ Request something not listed'}
+                </button>
+              ) : (
+                <div className="bk-custom-row" style={{ marginTop: 10 }}>
                   <input
-                    autoFocus
-                    className="input flex-1 min-w-[160px]"
-                    placeholder={lang === 'kn' ? 'ಹೊಸ ಭಕ್ಷ್ಯದ ಹೆಸರು' : 'New dish name'}
                     value={newItemName}
+                    autoFocus
                     onChange={(e) => setNewItemName(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && newItemName.trim()) onAddCustom(cat.id, newItemName.trim())
-                    }}
-                    style={fieldStyle}
+                    onKeyDown={(e) =>
+                      e.key === 'Enter' && newItemName.trim() && onAddCustom(c.id, newItemName.trim())
+                    }
+                    placeholder={kn ? 'ಭಕ್ಷ್ಯದ ಹೆಸರು' : 'Dish name'}
+                    aria-label={kn ? 'ಭಕ್ಷ್ಯದ ಹೆಸರು' : 'Dish name'}
                   />
                   <button
-                    className="btn"
+                    className="bk-btn bk-btn-ghost"
                     disabled={!newItemName.trim()}
-                    onClick={() => onAddCustom(cat.id, newItemName.trim())}
-                    style={{
-                      background: newItemName.trim() ? 'var(--p-gold)' : 'transparent',
-                      color: newItemName.trim() ? 'var(--p-deeper)' : 'var(--p-muted)',
-                      border: `1.5px solid ${newItemName.trim() ? 'var(--p-gold)' : 'var(--p-muted)'}`,
-                      fontWeight: 700,
-                    }}
+                    onClick={() => onAddCustom(c.id, newItemName.trim())}
                   >
-                    {lang === 'kn' ? 'ಸೇರಿಸಿ' : 'Add'}
-                  </button>
-                  <button className="btn btn-secondary" onClick={() => setAddingFor(null)} style={{ borderColor: 'var(--p-muted)', color: 'var(--p-muted)' }}>
-                    {lang === 'kn' ? 'ರದ್ದು' : 'Cancel'}
+                    {kn ? 'ಸೇರಿಸಿ' : 'Add'}
                   </button>
                 </div>
-              ) : (
-                <button
-                  onClick={() => setAddingFor(cat.id)}
-                  className="mt-[12px]"
-                  style={{
-                    border: '1.6px dashed color-mix(in srgb,var(--p-gold-dark) 45%,transparent)',
-                    background: 'color-mix(in srgb,var(--p-gold) 6%,transparent)',
-                    borderRadius: 11,
-                    padding: '8px 15px',
-                    cursor: 'pointer',
-                    color: 'var(--p-gold-dark)',
-                    font: "700 12.5px/1 'Poppins',sans-serif",
-                  }}
-                >
-                  + {lang === 'kn' ? 'ಕಾಣೆಯಾದ ಐಟಂ ಸೇರಿಸಿ' : 'Add a missing item'}
-                </button>
               )}
             </div>
-          )
-        })}
+          ))}
+
+          {sections.length === 0 && (
+            <p className="bk-empty">{kn ? 'ಯಾವುದೂ ಸಿಗಲಿಲ್ಲ.' : 'Nothing matches that search.'}</p>
+          )}
+        </div>
       </div>
 
-      <div
-        className="flex items-center justify-between gap-[10px] flex-wrap"
-        style={{ marginTop: 34, paddingTop: 20, borderTop: '1px solid color-mix(in srgb,var(--p-deep) 12%,transparent)' }}
-      >
-        <button className="btn btn-secondary" onClick={onBack} style={{ borderColor: 'var(--p-deep)', color: 'var(--p-deep)' }}>
-          {lang === 'kn' ? '← ಹಿಂದಕ್ಕೆ' : '← Back'}
-        </button>
-        <button
-          className="btn"
-          onClick={onNext}
-          style={{ background: 'var(--p-gold)', color: 'var(--p-deeper)', border: '1.5px solid var(--p-gold)', fontWeight: 700 }}
-        >
-          {lang === 'kn' ? 'ಪರಿಶೀಲನೆಗೆ ಮುಂದುವರಿಸಿ →' : 'Continue to review →'}
-        </button>
+      {/* Cart sheet — review and remove what's chosen */}
+      {cartOpen && chosenCount > 0 && (
+        <div className="mn-cart" onClick={() => setCartOpen(false)}>
+          <div className="mn-cart-panel" onClick={(e) => e.stopPropagation()}>
+            <div className="mn-cart-hd">
+              <h4>{kn ? 'ನಿಮ್ಮ ಆಯ್ಕೆ' : 'Your selection'} ({chosenCount})</h4>
+              <button onClick={() => setCartOpen(false)} aria-label={kn ? 'ಮುಚ್ಚಿ' : 'Close'}>×</button>
+            </div>
+            <div className="mn-cart-list">
+              {selectedDishes.map((d) => (
+                <div className="mn-cart-row" key={d.id}>
+                  <i className={d.isVeg ? 'fc-dot fc-dot-veg' : 'fc-dot fc-dot-nonveg'} />
+                  <span>{t(d.dishName)}</span>
+                  <button onClick={() => onToggleDish(d.id)} aria-label="Remove">×</button>
+                </div>
+              ))}
+              {booking.customItems.map((c) => (
+                <div className="mn-cart-row is-custom" key={c.id}>
+                  <span>{c.name}</span>
+                  <button onClick={() => onRemoveCustom(c.id)} aria-label="Remove">×</button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Sticky bar doubles as the cart trigger */}
+      <div className="bk-bar">
+        <div className="bk-bar-in">
+          {chosenCount > 0 ? (
+            <button className="mn-cart-btn" onClick={() => setCartOpen(true)}>
+              <b>{chosenCount}</b>
+              {kn ? 'ಆಯ್ಕೆಯಾಗಿದೆ · ನೋಡಿ' : 'items selected · view'}
+            </button>
+          ) : (
+            <span className="bk-bar-info">
+              {kn ? 'ಆಯ್ಕೆ ಐಚ್ಛಿಕ' : 'Selection is optional'}
+            </span>
+          )}
+          <div className="bk-bar-acts">
+            <button className="bk-btn bk-btn-ghost" onClick={onBack}>
+              {kn ? 'ಹಿಂದೆ' : 'Back'}
+            </button>
+            <button className="bk-btn bk-btn-primary" onClick={onNext}>
+              {chosenCount > 0
+                ? `${kn ? 'ಮುಂದೆ' : 'Continue'} →`
+                : `${kn ? 'ಬಿಟ್ಟುಬಿಡಿ' : 'Skip'} →`}
+            </button>
+          </div>
+        </div>
       </div>
-    </div>
+    </section>
   )
 }
 
+/* ── Step 3: contact details ───────────────────────────────────── */
 function ReviewStep({
   eventLabel,
   foods,
@@ -728,187 +627,195 @@ function ReviewStep({
   ) => void
   onSubmit: () => void
 }) {
-  const canSubmit =
-    booking.contactName.trim() &&
-    booking.contactPhone.trim() &&
-    booking.guestCount.trim() &&
-    booking.eventDate.trim()
-  const totalItems = selectedDishes.length + booking.customItems.length
+  const kn = lang === 'kn'
+  const [touched, setTouched] = useState(false)
+  const [sending, setSending] = useState(false)
+
+  const phoneDigits = booking.contactPhone.replace(/\D/g, '')
+  const nameOk = booking.contactName.trim().length > 1
+  const phoneOk = phoneDigits.length >= 10
+  const valid = nameOk && phoneOk
+  const itemCount = selectedDishes.length + booking.customItems.length
+
+  const submit = async () => {
+    setTouched(true)
+    if (!valid || sending) return
+    setSending(true)
+    await onSubmit()
+    setSending(false)
+  }
 
   return (
-    <div className="animate-rise">
-      <h2 className="text-center" style={{ font: "700 28px/1.2 'Playfair Display',serif", color: 'var(--p-deep)', margin: '0 0 8px' }}>
-        {lang === 'kn' ? 'ನಿಮ್ಮ ಆಯ್ಕೆಗಳನ್ನು ಪರಿಶೀಲಿಸಿ ✨' : "You're almost there! ✨"}
-      </h2>
-      <p className="text-center text-[14px]" style={{ color: 'var(--p-muted)', margin: '0 0 28px' }}>
-        {lang === 'kn' ? 'ಈವೆಂಟ್:' : 'Celebrating:'}{' '}
-        <strong style={{ color: 'var(--p-deep)' }}>{eventLabel}</strong>
-        {' · '}
-        {lang === 'kn' ? `${totalItems} ಐಟಂಗಳು` : `${totalItems} item${totalItems === 1 ? '' : 's'} chosen`}
-      </p>
-
-      <div
-        className="grid gap-[16px] mx-auto"
-        style={{ gridTemplateColumns: 'repeat(auto-fit,minmax(260px,320px))', justifyContent: 'center', marginBottom: 34 }}
-      >
-        {foods.map((cat) => {
-          const dishes = selectedDishes.filter((d) => cat.dishlist.some((cd) => cd.id === d.id))
-          const custom = booking.customItems.filter((c) => c.categoryId === cat.id)
-          if (!dishes.length && !custom.length) return null
-          return (
-            <div
-              key={cat.id}
-              style={{
-                background: 'var(--p-card)',
-                borderRadius: 15,
-                padding: '16px 18px',
-                border: '1.5px solid color-mix(in srgb,var(--p-gold-dark) 22%,transparent)',
-                boxShadow: '0 10px 22px -18px color-mix(in srgb,var(--p-deep) 50%,transparent)',
-              }}
-            >
-              <div className="flex items-center gap-[8px] font-semibold text-[14px] mb-[10px]" style={{ color: 'var(--p-deep)' }}>
-                <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--p-gold-dark)' }} />
-                {t(cat.foodType)}
-              </div>
-              <ul className="list-none m-0 p-0 flex flex-col gap-[7px]">
-                {dishes.map((d) => (
-                  <li key={d.id} className="flex items-center gap-[7px] text-[13px]" style={{ color: 'var(--p-text)' }}>
-                    <span style={{ color: 'var(--p-gold-dark)' }}>✓</span> {t(d.dishName)}
-                  </li>
-                ))}
-                {custom.map((c) => (
-                  <li key={c.id} className="flex items-center gap-[7px] text-[13px]" style={{ color: 'var(--p-rose)' }}>
-                    <span>✓</span> {c.name}{' '}
-                    <span style={{ fontSize: 10, textTransform: 'uppercase', fontWeight: 700 }}>
-                      {lang === 'kn' ? '(ಹೊಸದು)' : '(added)'}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )
-        })}
-        {!selectedDishes.length && !booking.customItems.length && (
-          <p className="text-[13.5px]" style={{ color: 'var(--p-muted)' }}>
-            {lang === 'kn' ? 'ಯಾವುದೇ ಐಟಂ ಆಯ್ಕೆ ಮಾಡಿಲ್ಲ.' : 'No items selected yet.'}
-          </p>
-        )}
+    <section>
+      <div className="bk-head">
+        <p className="bk-crumb">
+          <button className="bk-link" onClick={onBack}>← {kn ? 'ಮೆನು' : 'Menu'}</button>
+          <b>{eventLabel}</b>
+        </p>
+        <h2 className="bk-h2">{kn ? 'ನಿಮ್ಮ ವಿವರಗಳು' : 'Almost there'}</h2>
+        <p className="bk-sub">
+          {kn
+            ? 'ನಿಮ್ಮ ಸಂಪರ್ಕ ವಿವರ ನೀಡಿ — ನಾವು ಶೀಘ್ರದಲ್ಲೇ ಕರೆ ಮಾಡುತ್ತೇವೆ.'
+            : "Leave your details and we'll call you back to plan the rest."}
+        </p>
       </div>
 
-      <div
-        className="mx-auto"
-        style={{
-          maxWidth: 520,
-          padding: 24,
-          borderRadius: 20,
-          background: 'linear-gradient(150deg,color-mix(in srgb,var(--p-gold) 8%,var(--p-card)),var(--p-card))',
-          border: '1.5px solid color-mix(in srgb,var(--p-gold-dark) 25%,transparent)',
-          boxShadow: '0 16px 34px -22px color-mix(in srgb,var(--p-deep) 45%,transparent)',
-        }}
-      >
-        <p className="uppercase m-0" style={{ font: "700 11px/1 'Poppins',sans-serif", letterSpacing: '.14em', color: 'var(--p-gold-dark)', marginBottom: 4 }}>
-          {lang === 'kn' ? '📞 ಸಂಪರ್ಕ ವಿವರಗಳು' : '📞 Your contact details'}
-        </p>
-        <p className="text-[13px]" style={{ color: 'var(--p-muted)', margin: '0 0 18px' }}>
-          {lang === 'kn' ? 'ನಾವು ನಿಮ್ಮನ್ನು ಶೀಘ್ರದಲ್ಲೇ ಸಂಪರ್ಕಿಸುತ್ತೇವೆ.' : "We'll get back to you shortly to confirm the details."}
-        </p>
+      <div className="bk-review">
+        {/* Summary */}
+        <aside className="bk-summary">
+          <p className="bk-summary-hd">{kn ? 'ಸಾರಾಂಶ' : 'Your enquiry'}</p>
+          <dl>
+            <dt>{kn ? 'ಸಂದರ್ಭ' : 'Occasion'}</dt>
+            <dd>{eventLabel || '—'}</dd>
+            <dt>{kn ? 'ಆಯ್ಕೆಗಳು' : 'Menu items'}</dt>
+            <dd>
+              {itemCount > 0
+                ? `${itemCount} ${kn ? 'ಆಯ್ಕೆಯಾಗಿದೆ' : 'selected'}`
+                : kn
+                  ? 'ಸಮಾಲೋಚನೆಯಲ್ಲಿ ನಿರ್ಧರಿಸಲಾಗುವುದು'
+                  : "We'll advise on the menu"}
+            </dd>
+          </dl>
+          {itemCount > 0 && (
+            <div className="bk-summary-items">
+              {selectedDishes.slice(0, 8).map((d) => (
+                <span key={d.id}>{t(d.dishName)}</span>
+              ))}
+              {booking.customItems.slice(0, 4).map((c) => (
+                <span key={c.id}>{c.name}</span>
+              ))}
+              {itemCount > 12 && <span className="is-more">+{itemCount - 12}</span>}
+            </div>
+          )}
+        </aside>
 
-        <div className="flex flex-col gap-[14px]">
-          <div className="field">
-            <label style={{ color: 'var(--p-deep)', fontWeight: 600 }}>{lang === 'kn' ? 'ನಿಮ್ಮ ಹೆಸರು' : 'Your name'}</label>
-            <input
-              className="input"
-              placeholder={lang === 'kn' ? 'ಉದಾ. ಸುರೇಶ್ ಕುಮಾರ್' : 'e.g. Suresh Kumar'}
-              value={booking.contactName}
-              onChange={(e) => onContactChange({ contactName: e.target.value })}
-              style={fieldStyle}
-            />
-          </div>
-          <div className="field">
-            <label style={{ color: 'var(--p-deep)', fontWeight: 600 }}>{lang === 'kn' ? 'ಫೋನ್ ಸಂಖ್ಯೆ' : 'Phone number'}</label>
-            <input
-              className="input"
-              placeholder={lang === 'kn' ? 'ಉದಾ. 98765 43210' : 'e.g. 98765 43210'}
-              value={booking.contactPhone}
-              onChange={(e) => onContactChange({ contactPhone: e.target.value })}
-              style={fieldStyle}
-            />
-          </div>
-          <div className="field">
-            <label style={{ color: 'var(--p-deep)', fontWeight: 600 }}>
-              {lang === 'kn' ? 'ಅತಿಥಿಗಳ ಸಂಖ್ಯೆ' : 'Number of guests attending'}
+        {/* Contact form */}
+        <form
+          className="bk-form"
+          onSubmit={(e) => {
+            e.preventDefault()
+            submit()
+          }}
+        >
+          <div className="bk-field">
+            <label htmlFor="bk-name">
+              {kn ? 'ನಿಮ್ಮ ಹೆಸರು' : 'Your name'} <i>*</i>
             </label>
             <input
-              className="input"
-              type="number"
-              min={1}
-              inputMode="numeric"
-              placeholder={lang === 'kn' ? 'ಉದಾ. 150' : 'e.g. 150'}
-              value={booking.guestCount}
-              onChange={(e) => onContactChange({ guestCount: e.target.value })}
-              style={fieldStyle}
+              id="bk-name"
+              value={booking.contactName}
+              onChange={(e) => onContactChange({ contactName: e.target.value })}
+              onBlur={() => setTouched(true)}
+              placeholder={kn ? 'ಪೂರ್ಣ ಹೆಸರು' : 'Full name'}
+              className={touched && !nameOk ? 'is-bad' : ''}
             />
+            {touched && !nameOk && (
+              <small>{kn ? 'ಹೆಸರು ನಮೂದಿಸಿ' : 'Please enter your name'}</small>
+            )}
           </div>
-          <div className="grid gap-[14px]" style={{ gridTemplateColumns: 'repeat(auto-fit,minmax(140px,1fr))' }}>
-            <div className="field">
-              <label style={{ color: 'var(--p-deep)', fontWeight: 600 }}>
-                {lang === 'kn' ? 'ಈವೆಂಟ್ ದಿನಾಂಕ' : 'Event date'}
-              </label>
+
+          <div className="bk-field">
+            <label htmlFor="bk-phone">
+              {kn ? 'ಮೊಬೈಲ್ ಸಂಖ್ಯೆ' : 'Mobile number'} <i>*</i>
+            </label>
+            <input
+              id="bk-phone"
+              inputMode="tel"
+              value={booking.contactPhone}
+              onChange={(e) => onContactChange({ contactPhone: e.target.value })}
+              onBlur={() => setTouched(true)}
+              placeholder={kn ? '10 ಅಂಕಿಗಳ ಸಂಖ್ಯೆ' : '10-digit number'}
+              className={touched && !phoneOk ? 'is-bad' : ''}
+            />
+            {touched && !phoneOk && (
+              <small>{kn ? 'ಸರಿಯಾದ ಸಂಖ್ಯೆ ನಮೂದಿಸಿ' : 'Enter a valid contact number'}</small>
+            )}
+          </div>
+
+          <div className="bk-field-row">
+            <div className="bk-field">
+              <label htmlFor="bk-guests">{kn ? 'ಅತಿಥಿಗಳು' : 'Guests'}</label>
               <input
-                className="input"
+                id="bk-guests"
+                inputMode="numeric"
+                value={booking.guestCount}
+                onChange={(e) => onContactChange({ guestCount: e.target.value })}
+                placeholder={kn ? 'ಉದಾ. 250' : 'e.g. 250'}
+              />
+            </div>
+            <div className="bk-field">
+              <label htmlFor="bk-date">{kn ? 'ದಿನಾಂಕ' : 'Date'}</label>
+              <input
+                id="bk-date"
                 type="date"
                 value={booking.eventDate}
                 onChange={(e) => onContactChange({ eventDate: e.target.value })}
-                style={fieldStyle}
               />
             </div>
-            <div className="field">
-              <label style={{ color: 'var(--p-deep)', fontWeight: 600 }}>
-                {lang === 'kn' ? 'ಸಮಯ (ಐಚ್ಛಿಕ)' : 'Time (optional)'}
-              </label>
+            <div className="bk-field">
+              <label htmlFor="bk-time">{kn ? 'ಸಮಯ' : 'Time'}</label>
               <input
-                className="input"
+                id="bk-time"
                 type="time"
                 value={booking.eventTime}
                 onChange={(e) => onContactChange({ eventTime: e.target.value })}
-                style={fieldStyle}
               />
             </div>
           </div>
-          <div className="field">
-            <label style={{ color: 'var(--p-deep)', fontWeight: 600 }}>
-              {lang === 'kn' ? 'ಹೆಚ್ಚುವರಿ ಟಿಪ್ಪಣಿಗಳು (ಐಚ್ಛಿಕ)' : 'Additional notes (optional)'}
-            </label>
+
+          <div className="bk-field">
+            <label htmlFor="bk-notes">{kn ? 'ಟಿಪ್ಪಣಿ' : 'Anything else?'}</label>
             <textarea
-              className="input"
-              placeholder={lang === 'kn' ? 'ಸ್ಥಳ...' : 'Venue...'}
+              id="bk-notes"
+              rows={3}
               value={booking.contactNotes}
               onChange={(e) => onContactChange({ contactNotes: e.target.value })}
-              style={fieldStyle}
+              placeholder={
+                kn ? 'ಸ್ಥಳ, ಬಜೆಟ್, ವಿಶೇಷ ವಿನಂತಿ…' : 'Venue, budget, special requests…'
+              }
             />
+          </div>
+
+          <p className="bk-assure">
+            {kn
+              ? '✓ ಉಚಿತ ಸಮಾಲೋಚನೆ · ಯಾವುದೇ ಬದ್ಧತೆ ಇಲ್ಲ'
+              : '✓ Free consultation · No commitment'}
+          </p>
+        </form>
+      </div>
+
+      {/* Sticky submit */}
+      <div className="bk-bar">
+        <div className="bk-bar-in">
+          <span className="bk-bar-info">
+            {valid || !touched
+              ? kn
+                ? 'ನಾವು 24 ಗಂಟೆಗಳಲ್ಲಿ ಕರೆ ಮಾಡುತ್ತೇವೆ'
+                : "We'll call you within 24 hours"
+              : kn
+                ? 'ಅಗತ್ಯ ವಿವರ ಭರ್ತಿ ಮಾಡಿ'
+                : 'Fill the required fields'}
+          </span>
+          <div className="bk-bar-acts">
+            <button className="bk-btn bk-btn-ghost" onClick={onBack}>
+              {kn ? 'ಹಿಂದೆ' : 'Back'}
+            </button>
+            <button
+              className="bk-btn bk-btn-primary"
+              disabled={sending}
+              onClick={submit}
+            >
+              {sending
+                ? kn
+                  ? 'ಕಳುಹಿಸುತ್ತಿದೆ…'
+                  : 'Sending…'
+                : kn
+                  ? 'ವಿನಂತಿ ಕಳುಹಿಸಿ'
+                  : 'Send my enquiry'}
+            </button>
           </div>
         </div>
       </div>
-
-      <div className="flex items-center justify-between gap-[10px] flex-wrap" style={{ marginTop: 30, paddingTop: 20, borderTop: '1px solid color-mix(in srgb,var(--p-deep) 12%,transparent)' }}>
-        <button className="btn btn-secondary" onClick={onBack} style={{ borderColor: 'var(--p-deep)', color: 'var(--p-deep)' }}>
-          {lang === 'kn' ? '← ಹಿಂದಕ್ಕೆ' : '← Back'}
-        </button>
-        <button
-          className="btn"
-          disabled={!canSubmit}
-          onClick={onSubmit}
-          style={{
-            background: canSubmit ? 'var(--p-gold)' : 'transparent',
-            color: canSubmit ? 'var(--p-deeper)' : 'var(--p-muted)',
-            border: `1.5px solid ${canSubmit ? 'var(--p-gold)' : 'var(--p-muted)'}`,
-            fontWeight: 700,
-            padding: '11px 22px',
-          }}
-        >
-          {lang === 'kn' ? 'ವಿನಂತಿ ಸಲ್ಲಿಸಿ ✓' : 'Submit enquiry ✓'}
-        </button>
-      </div>
-    </div>
+    </section>
   )
 }

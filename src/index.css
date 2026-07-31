@@ -1937,3 +1937,653 @@ textarea.input { min-height: 90px; resize: vertical; }
 @media (prefers-reduced-motion: reduce) {
   .ps-burger-ico i, .ps-burger-menu { transition: none; animation: none; }
 }
+
+/* ══════════════════════════════════════════════════════════════
+   Booking flow
+   ══════════════════════════════════════════════════════════════ */
+
+.bk-hero {
+  background: linear-gradient(165deg, #050a18, var(--p-deeper) 45%, var(--p-deep) 100%);
+  border-bottom: 1px solid color-mix(in srgb, var(--p-gold) 24%, transparent);
+}
+.bk-hero-inner {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: clamp(26px, 4vw, 44px) 20px clamp(20px, 3vw, 30px);
+  text-align: center;
+}
+.bk-kicker {
+  margin: 0 0 10px;
+  font: 600 10px/1 'Poppins', sans-serif;
+  letter-spacing: .3em;
+  text-transform: uppercase;
+  color: var(--p-gold);
+}
+[data-lang='kn'] .bk-kicker {
+  font-family: 'Noto Sans Kannada', sans-serif;
+  letter-spacing: normal; text-transform: none; font-size: 11.5px;
+}
+.bk-title {
+  margin: 0;
+  font: 700 clamp(23px, 4vw, 36px)/1.2 'Playfair Display', serif;
+  color: var(--p-gold-light);
+}
+[data-lang='kn'] .bk-title { font-family: 'Tiro Kannada', serif; font-style: italic; font-weight: 400; }
+
+/* Progress rail */
+.bk-rail {
+  list-style: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: clamp(6px, 1.6vw, 16px);
+  margin: clamp(18px, 3vw, 26px) 0 0;
+  padding: 0;
+}
+.bk-rail-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px 8px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, .12);
+  font: 600 12px/1 'Poppins', sans-serif;
+  color: rgba(244, 237, 224, .55);
+  white-space: nowrap;
+  transition: all .28s cubic-bezier(.16, 1, .3, 1);
+}
+[data-lang='kn'] .bk-rail-step { font-family: 'Noto Sans Kannada', sans-serif; }
+.bk-rail-dot {
+  display: grid;
+  place-items: center;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .1);
+  font-size: 11px;
+  color: inherit;
+}
+.bk-rail-step.is-done {
+  color: var(--p-gold-light);
+  border-color: color-mix(in srgb, var(--p-gold) 45%, transparent);
+}
+.bk-rail-step.is-done .bk-rail-dot {
+  background: color-mix(in srgb, var(--p-gold) 26%, transparent);
+  color: var(--p-gold-light);
+}
+.bk-rail-step.is-now {
+  background: linear-gradient(150deg, var(--p-gold-light), var(--p-gold) 50%, var(--p-gold-dark));
+  border-color: transparent;
+  color: #12182c;
+  box-shadow: 0 8px 20px -10px rgba(212, 175, 55, .8);
+}
+.bk-rail-step.is-now .bk-rail-dot { background: rgba(18, 24, 44, .18); color: #12182c; }
+@media (max-width: 480px) {
+  .bk-rail-step { padding: 7px 11px 7px 7px; font-size: 11px; }
+  .bk-rail-step:not(.is-now) .bk-rail-lbl { display: none; }
+}
+
+/* Section headings */
+.bk-head { text-align: center; margin-bottom: clamp(20px, 3vw, 30px); }
+.bk-h2 {
+  margin: 0;
+  font: 700 clamp(21px, 3.2vw, 30px)/1.25 'Playfair Display', serif;
+  color: var(--p-deep);
+}
+[data-lang='kn'] .bk-h2 { font-family: 'Noto Sans Kannada', sans-serif; font-weight: 600; }
+.bk-sub {
+  max-width: 460px;
+  margin: 10px auto 0;
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: var(--p-muted);
+}
+.bk-crumb {
+  display: flex; align-items: center; justify-content: center;
+  gap: 10px; margin: 0 0 12px; font-size: 12.5px; color: var(--p-muted);
+}
+.bk-crumb b { color: var(--p-deep); font-weight: 600; }
+
+.bk-link {
+  border: 0; background: none; cursor: pointer; padding: 0;
+  font: 600 12.5px/1 'Poppins', sans-serif;
+  color: var(--p-gold-dark);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+[data-lang='kn'] .bk-link { font-family: 'Noto Sans Kannada', sans-serif; }
+.bk-link:hover { color: var(--p-deep); }
+
+/* Search */
+.bk-search {
+  display: flex; align-items: center; gap: 10px;
+  max-width: 400px;
+  margin: 0 auto clamp(20px, 3vw, 28px);
+  padding: 11px 15px;
+  border-radius: 999px;
+  background: var(--p-card);
+  border: 1.4px solid color-mix(in srgb, var(--p-deep) 15%, transparent);
+  color: var(--p-muted);
+}
+.bk-search-sm { max-width: 100%; margin-bottom: 16px; }
+.bk-search input {
+  flex: 1; min-width: 0; border: 0; outline: 0; background: none;
+  font: 500 13.5px/1 'Poppins', sans-serif; color: var(--p-text);
+}
+.bk-search input::placeholder { color: color-mix(in srgb, var(--p-muted) 75%, transparent); }
+.bk-search > button {
+  border: 0; background: none; cursor: pointer;
+  font-size: 18px; line-height: 1; color: var(--p-muted);
+}
+
+/* Event cards */
+.bk-grid {
+  display: grid;
+  gap: clamp(12px, 1.6vw, 18px);
+  grid-template-columns: repeat(auto-fill, minmax(158px, 1fr));
+}
+.bk-card {
+  position: relative;
+  display: flex; flex-direction: column;
+  padding: 0; overflow: hidden; cursor: pointer; text-align: left;
+  border-radius: 16px;
+  background: var(--p-card);
+  border: 1.5px solid color-mix(in srgb, var(--p-deep) 12%, transparent);
+  box-shadow: 0 12px 28px -22px color-mix(in srgb, var(--p-deep) 60%, transparent);
+  transition: transform .3s cubic-bezier(.16, 1, .3, 1), box-shadow .3s ease, border-color .3s ease;
+}
+.bk-card:hover, .bk-card:focus-visible {
+  transform: translateY(-5px);
+  border-color: color-mix(in srgb, var(--p-gold) 62%, transparent);
+  box-shadow: 0 24px 42px -24px color-mix(in srgb, var(--p-deep) 65%, transparent);
+  outline: none;
+}
+.bk-card-media { position: relative; display: block; aspect-ratio: 4 / 3; overflow: hidden; background: #0d1730; }
+.bk-card-media img, .bk-card-art {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; transition: transform .55s cubic-bezier(.16, 1, .3, 1);
+}
+.bk-card:hover .bk-card-media img { transform: scale(1.07); }
+.bk-card-body { display: flex; align-items: center; gap: 10px; padding: 12px 13px 14px; }
+.bk-card-ico {
+  display: grid; place-items: center; flex: none;
+  width: 32px; height: 32px; border-radius: 10px;
+  background: linear-gradient(150deg, var(--p-deep), var(--p-deeper));
+  color: var(--p-gold-light);
+}
+.bk-card-name {
+  font: 600 13.5px/1.3 'Playfair Display', serif;
+  color: var(--p-deep);
+}
+[data-lang='kn'] .bk-card-name { font-family: 'Noto Sans Kannada', sans-serif; font-size: 13px; }
+.bk-card-check {
+  position: absolute; top: 9px; right: 9px;
+  display: grid; place-items: center;
+  width: 26px; height: 26px; border-radius: 50%;
+  background: linear-gradient(150deg, var(--p-gold-light), var(--p-gold-dark));
+  color: #12182c; font-size: 13px; font-weight: 700;
+  opacity: 0; transform: scale(.6);
+  transition: all .28s cubic-bezier(.16, 1, .3, 1);
+}
+.bk-card:hover .bk-card-check { opacity: 1; transform: scale(1); }
+
+.bk-empty { text-align: center; padding: 26px 0; color: var(--p-muted); font-size: 13.5px; }
+
+/* Custom occasion / dish */
+.bk-custom { margin-top: clamp(20px, 3vw, 28px); text-align: center; }
+.bk-custom-row {
+  display: flex; flex-wrap: wrap; gap: 9px;
+  max-width: 460px; margin: 0 auto;
+}
+.bk-custom-row input {
+  flex: 1; min-width: 180px;
+  padding: 12px 16px; border-radius: 999px;
+  background: var(--p-card); color: var(--p-text);
+  border: 1.4px solid color-mix(in srgb, var(--p-deep) 15%, transparent);
+  font: 500 13.5px/1 'Poppins', sans-serif; outline: 0;
+}
+.bk-custom-row input:focus { border-color: color-mix(in srgb, var(--p-gold) 65%, transparent); }
+
+/* Buttons */
+.bk-btn {
+  padding: 13px 24px; border-radius: 999px; cursor: pointer;
+  font: 700 13.5px/1 'Poppins', sans-serif; border: 1.4px solid transparent;
+  transition: all .24s ease; white-space: nowrap;
+}
+[data-lang='kn'] .bk-btn { font-family: 'Noto Sans Kannada', sans-serif; }
+.bk-btn-primary {
+  background: linear-gradient(150deg, var(--p-gold-light), var(--p-gold) 45%, var(--p-gold-dark));
+  color: #12182c;
+  box-shadow: 0 10px 24px -12px rgba(212, 175, 55, .8);
+}
+.bk-btn-primary:hover:not(:disabled) { filter: brightness(1.06); transform: translateY(-1px); }
+.bk-btn-ghost {
+  background: transparent; color: var(--p-deep);
+  border-color: color-mix(in srgb, var(--p-deep) 24%, transparent);
+}
+.bk-btn-ghost:hover:not(:disabled) { background: color-mix(in srgb, var(--p-deep) 7%, transparent); }
+.bk-btn:disabled { opacity: .45; cursor: not-allowed; }
+
+/* Chosen chips */
+.bk-chosen {
+  padding: 15px 17px; margin-bottom: 18px;
+  border-radius: 15px;
+  background: color-mix(in srgb, var(--p-gold) 9%, transparent);
+  border: 1px solid color-mix(in srgb, var(--p-gold) 30%, transparent);
+}
+.bk-chosen-hd {
+  margin: 0 0 11px;
+  font: 600 10.5px/1 'Poppins', sans-serif;
+  letter-spacing: .16em; text-transform: uppercase; color: var(--p-gold-dark);
+}
+[data-lang='kn'] .bk-chosen-hd { font-family: 'Noto Sans Kannada', sans-serif; letter-spacing: normal; text-transform: none; font-size: 12px; }
+.bk-chosen-hd b { color: var(--p-deep); }
+.bk-chosen-wrap { display: flex; flex-wrap: wrap; gap: 7px; }
+.bk-chip {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 8px 13px; border-radius: 999px; cursor: pointer;
+  font: 500 12.5px/1 'Poppins', sans-serif;
+  background: var(--p-card); color: var(--p-text);
+  border: 1px solid color-mix(in srgb, var(--p-deep) 14%, transparent);
+  transition: all .2s ease;
+}
+[data-lang='kn'] .bk-chip { font-family: 'Noto Sans Kannada', sans-serif; }
+.bk-chip em { font-style: normal; opacity: .5; font-size: 14px; }
+.bk-chip:hover { border-color: #ef4444; color: #b91c1c; }
+.bk-chip:hover em { opacity: 1; }
+.bk-chip.is-custom { border-style: dashed; }
+
+/* Category tabs */
+.bk-cats {
+  display: flex; gap: 8px; margin-bottom: 14px;
+  overflow-x: auto; scrollbar-width: none;
+  padding-bottom: 2px;
+}
+.bk-cats::-webkit-scrollbar { display: none; }
+.bk-cat {
+  display: inline-flex; align-items: center; gap: 7px; flex: none;
+  padding: 10px 16px; border-radius: 999px; cursor: pointer;
+  font: 600 12.5px/1 'Poppins', sans-serif;
+  background: var(--p-card); color: var(--p-muted);
+  border: 1.3px solid color-mix(in srgb, var(--p-deep) 13%, transparent);
+  transition: all .22s ease; white-space: nowrap;
+}
+[data-lang='kn'] .bk-cat { font-family: 'Noto Sans Kannada', sans-serif; }
+.bk-cat b {
+  padding: 3px 6px; border-radius: 999px; font-size: 10px;
+  background: linear-gradient(150deg, var(--p-gold-light), var(--p-gold-dark)); color: #12182c;
+}
+.bk-cat:hover { border-color: color-mix(in srgb, var(--p-gold) 50%, transparent); }
+.bk-cat.is-on {
+  background: linear-gradient(150deg, var(--p-deep), var(--p-deeper));
+  color: var(--p-gold-light);
+  border-color: color-mix(in srgb, var(--p-gold) 45%, transparent);
+}
+
+/* Dish toggles */
+.bk-dishes {
+  display: grid; gap: 8px;
+  grid-template-columns: repeat(auto-fill, minmax(212px, 1fr));
+}
+.bk-dish {
+  display: flex; align-items: center; gap: 9px;
+  padding: 12px 14px; border-radius: 12px; cursor: pointer; text-align: left;
+  background: var(--p-card); color: var(--p-text);
+  border: 1.3px solid color-mix(in srgb, var(--p-deep) 12%, transparent);
+  font: 500 13px/1.3 'Poppins', sans-serif;
+  transition: all .2s ease;
+}
+[data-lang='kn'] .bk-dish { font-family: 'Noto Sans Kannada', sans-serif; }
+.bk-dish span { flex: 1; min-width: 0; }
+.bk-dish em {
+  font-style: normal; flex: none;
+  display: grid; place-items: center;
+  width: 22px; height: 22px; border-radius: 50%;
+  background: color-mix(in srgb, var(--p-deep) 8%, transparent);
+  color: var(--p-muted); font-size: 12px; font-weight: 700;
+}
+.bk-dish:hover { border-color: color-mix(in srgb, var(--p-gold) 55%, transparent); }
+.bk-dish.is-on {
+  background: color-mix(in srgb, var(--p-gold) 12%, transparent);
+  border-color: color-mix(in srgb, var(--p-gold) 62%, transparent);
+}
+.bk-dish.is-on em {
+  background: linear-gradient(150deg, var(--p-gold-light), var(--p-gold-dark)); color: #12182c;
+}
+
+/* Sticky action bar */
+.bk-bar {
+  position: sticky; bottom: 0; z-index: 20;
+  margin: clamp(24px, 4vw, 36px) -20px 0;
+  padding: 12px 20px calc(12px + env(safe-area-inset-bottom, 0px));
+  background: color-mix(in srgb, var(--p-bg) 92%, transparent);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid color-mix(in srgb, var(--p-deep) 12%, transparent);
+}
+.bk-bar-in {
+  max-width: 1040px; margin: 0 auto;
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+}
+.bk-bar-info { flex: 1; min-width: 120px; font-size: 12.5px; color: var(--p-muted); }
+.bk-bar-acts { display: flex; gap: 9px; margin-left: auto; }
+@media (max-width: 460px) {
+  .bk-bar-info { flex-basis: 100%; text-align: center; }
+  .bk-bar-acts { width: 100%; }
+  .bk-bar-acts .bk-btn { flex: 1; padding-inline: 14px; }
+}
+
+/* Review layout */
+.bk-review {
+  display: grid; gap: clamp(16px, 2.4vw, 26px);
+  grid-template-columns: 1fr;
+}
+@media (min-width: 860px) {
+  .bk-review { grid-template-columns: 300px minmax(0, 1fr); align-items: start; }
+  .bk-summary { position: sticky; top: 78px; }
+}
+.bk-summary {
+  padding: 20px; border-radius: 16px;
+  background: linear-gradient(160deg, var(--p-deep), var(--p-deeper));
+  border: 1px solid color-mix(in srgb, var(--p-gold) 30%, transparent);
+}
+.bk-summary-hd {
+  margin: 0 0 14px;
+  font: 600 10px/1 'Poppins', sans-serif;
+  letter-spacing: .2em; text-transform: uppercase; color: var(--p-gold);
+}
+[data-lang='kn'] .bk-summary-hd { font-family: 'Noto Sans Kannada', sans-serif; letter-spacing: normal; text-transform: none; font-size: 12px; }
+.bk-summary dl { margin: 0; display: grid; gap: 3px; }
+.bk-summary dt {
+  font: 600 10px/1 'Poppins', sans-serif;
+  letter-spacing: .14em; text-transform: uppercase;
+  color: rgba(244, 237, 224, .5); margin-top: 12px;
+}
+[data-lang='kn'] .bk-summary dt { font-family: 'Noto Sans Kannada', sans-serif; letter-spacing: normal; text-transform: none; font-size: 11.5px; }
+.bk-summary dt:first-child { margin-top: 0; }
+.bk-summary dd {
+  margin: 0;
+  font: 600 15px/1.35 'Playfair Display', serif;
+  color: var(--p-gold-light);
+}
+[data-lang='kn'] .bk-summary dd { font-family: 'Noto Sans Kannada', sans-serif; font-size: 14px; }
+.bk-summary-items {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  margin-top: 14px; padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, .1);
+}
+.bk-summary-items span {
+  padding: 5px 10px; border-radius: 999px;
+  background: rgba(255, 255, 255, .07);
+  font-size: 11px; color: rgba(244, 237, 224, .8);
+}
+.bk-summary-items .is-more { color: var(--p-gold); }
+
+/* Form */
+.bk-form { display: flex; flex-direction: column; gap: 15px; }
+.bk-field { display: flex; flex-direction: column; gap: 7px; }
+.bk-field label {
+  font: 600 12px/1 'Poppins', sans-serif; color: var(--p-deep);
+}
+[data-lang='kn'] .bk-field label { font-family: 'Noto Sans Kannada', sans-serif; }
+.bk-field label i { color: #dc2626; font-style: normal; }
+.bk-field input, .bk-field textarea {
+  padding: 13px 15px; border-radius: 12px; outline: 0;
+  background: var(--p-card); color: var(--p-text);
+  border: 1.4px solid color-mix(in srgb, var(--p-deep) 15%, transparent);
+  font: 500 13.5px/1.5 'Poppins', sans-serif;
+  transition: border-color .2s ease;
+  width: 100%;
+}
+.bk-field textarea { resize: vertical; }
+.bk-field input:focus, .bk-field textarea:focus {
+  border-color: color-mix(in srgb, var(--p-gold) 68%, transparent);
+}
+.bk-field input.is-bad { border-color: #dc2626; background: color-mix(in srgb, #dc2626 5%, var(--p-card)); }
+.bk-field small { font-size: 11.5px; color: #dc2626; }
+.bk-field-row { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); }
+.bk-assure {
+  margin: 4px 0 0; font-size: 12px; color: var(--p-veg); font-weight: 600;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bk-card, .bk-card-media img, .bk-card-check, .bk-rail-step { transition: none; }
+  .bk-card:hover { transform: none; }
+  .bk-card:hover .bk-card-media img { transform: none; }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Booking step 2 — restaurant-style menu
+   ══════════════════════════════════════════════════════════════ */
+
+/* Sticky toolbar */
+.mn-tools {
+  position: sticky;
+  top: 58px;
+  z-index: 15;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin: 0 -20px 18px;
+  padding: 12px 20px;
+  background: color-mix(in srgb, var(--p-bg) 94%, transparent);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid color-mix(in srgb, var(--p-deep) 10%, transparent);
+}
+
+.mn-search {
+  flex: 1;
+  min-width: 190px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: var(--p-card);
+  border: 1.3px solid color-mix(in srgb, var(--p-deep) 14%, transparent);
+  color: var(--p-muted);
+}
+.mn-search input {
+  flex: 1; min-width: 0; border: 0; outline: 0; background: none;
+  font: 500 13px/1 'Poppins', sans-serif; color: var(--p-text);
+}
+.mn-search > button { border: 0; background: none; cursor: pointer; font-size: 17px; color: var(--p-muted); }
+
+/* Veg / non-veg segmented control */
+.mn-diet {
+  display: flex; flex: none; gap: 3px; padding: 3px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--p-deep) 7%, transparent);
+  border: 1px solid color-mix(in srgb, var(--p-deep) 11%, transparent);
+}
+.mn-diet button {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 14px; border: 0; border-radius: 999px; cursor: pointer;
+  background: none; color: var(--p-muted);
+  font: 600 12px/1 'Poppins', sans-serif;
+  transition: all .2s ease;
+}
+[data-lang='kn'] .mn-diet button { font-family: 'Noto Sans Kannada', sans-serif; }
+.mn-diet button.is-on {
+  background: linear-gradient(150deg, var(--p-deep), var(--p-deeper));
+  color: var(--p-gold-light);
+}
+
+/* Two-column: course rail + menu list */
+.mn-body { display: grid; gap: 22px; grid-template-columns: 1fr; }
+@media (min-width: 880px) {
+  .mn-body { grid-template-columns: 196px minmax(0, 1fr); align-items: start; }
+}
+
+.mn-rail { display: none; flex-direction: column; gap: 3px; position: sticky; top: 128px; }
+@media (min-width: 880px) { .mn-rail { display: flex; } }
+.mn-rail button {
+  display: flex; align-items: center; gap: 8px;
+  padding: 11px 13px; border: 0; border-radius: 10px; cursor: pointer;
+  background: none; text-align: left;
+  font: 500 12.5px/1.3 'Poppins', sans-serif; color: var(--p-muted);
+  transition: all .2s ease;
+}
+[data-lang='kn'] .mn-rail button { font-family: 'Noto Sans Kannada', sans-serif; }
+.mn-rail button span { flex: 1; min-width: 0; }
+.mn-rail button em {
+  font-style: normal; font-size: 11px;
+  color: color-mix(in srgb, var(--p-muted) 70%, transparent);
+}
+.mn-rail button b {
+  padding: 3px 7px; border-radius: 999px; font-size: 10px;
+  background: linear-gradient(150deg, var(--p-gold-light), var(--p-gold-dark)); color: #12182c;
+}
+.mn-rail button:hover { background: color-mix(in srgb, var(--p-deep) 6%, transparent); color: var(--p-deep); }
+.mn-rail button.is-on {
+  background: color-mix(in srgb, var(--p-gold) 14%, transparent);
+  color: var(--p-deep); font-weight: 600;
+}
+
+/* Course sections */
+.mn-list { display: flex; flex-direction: column; gap: 26px; }
+.mn-sec { scroll-margin-top: 130px; }
+.mn-sec-hd {
+  display: flex; align-items: baseline; gap: 12px;
+  padding-bottom: 10px; margin-bottom: 4px;
+  border-bottom: 1.5px solid color-mix(in srgb, var(--p-gold) 40%, transparent);
+}
+.mn-sec-hd h3 {
+  margin: 0;
+  font: 700 clamp(16px, 2vw, 19px)/1.2 'Playfair Display', serif;
+  color: var(--p-deep);
+}
+[data-lang='kn'] .mn-sec-hd h3 { font-family: 'Noto Sans Kannada', sans-serif; font-weight: 600; }
+.mn-sec-hd span { margin-left: auto; font-size: 11.5px; color: var(--p-muted); }
+
+/* One dish per row, like a printed menu */
+.mn-row {
+  display: flex; align-items: center; gap: 13px;
+  padding: 14px 4px;
+  border-bottom: 1px dashed color-mix(in srgb, var(--p-deep) 13%, transparent);
+  transition: background .2s ease;
+}
+.mn-row:last-of-type { border-bottom: 0; }
+.mn-row.is-on { background: color-mix(in srgb, var(--p-gold) 8%, transparent); }
+
+.mn-row-txt { flex: 1; min-width: 0; }
+.mn-row-name {
+  display: flex; align-items: center; gap: 8px; margin: 0;
+  font: 600 14px/1.35 'Poppins', sans-serif; color: var(--p-text);
+}
+[data-lang='kn'] .mn-row-name { font-family: 'Noto Sans Kannada', sans-serif; }
+.mn-row-desc {
+  margin: 4px 0 0; font-size: 12.5px; line-height: 1.5; color: var(--p-muted);
+}
+
+.mn-row-img {
+  flex: none; width: 60px; height: 60px; border-radius: 10px; overflow: hidden;
+  background: color-mix(in srgb, var(--p-deep) 8%, transparent);
+}
+.mn-row-img img { width: 100%; height: 100%; object-fit: cover; }
+
+/* Add / added button */
+.mn-add {
+  flex: none;
+  padding: 9px 15px; border-radius: 999px; cursor: pointer;
+  font: 700 12px/1 'Poppins', sans-serif; white-space: nowrap;
+  background: var(--p-card); color: var(--p-gold-dark);
+  border: 1.4px solid color-mix(in srgb, var(--p-gold) 55%, transparent);
+  transition: all .2s ease;
+}
+[data-lang='kn'] .mn-add { font-family: 'Noto Sans Kannada', sans-serif; }
+.mn-add:hover { background: color-mix(in srgb, var(--p-gold) 16%, transparent); }
+.mn-add.is-on {
+  background: linear-gradient(150deg, var(--p-deep), var(--p-deeper));
+  color: var(--p-gold-light);
+  border-color: color-mix(in srgb, var(--p-gold) 50%, transparent);
+}
+
+.mn-req {
+  margin-top: 12px; padding: 10px 15px;
+  border-radius: 10px; cursor: pointer;
+  background: none; color: var(--p-gold-dark);
+  border: 1.3px dashed color-mix(in srgb, var(--p-gold) 45%, transparent);
+  font: 600 12px/1 'Poppins', sans-serif; width: 100%;
+}
+[data-lang='kn'] .mn-req { font-family: 'Noto Sans Kannada', sans-serif; }
+.mn-req:hover { background: color-mix(in srgb, var(--p-gold) 9%, transparent); }
+
+/* Cart trigger in the sticky bar */
+.mn-cart-btn {
+  display: inline-flex; align-items: center; gap: 9px;
+  padding: 9px 15px; border-radius: 999px; cursor: pointer;
+  background: color-mix(in srgb, var(--p-gold) 14%, transparent);
+  border: 1.3px solid color-mix(in srgb, var(--p-gold) 45%, transparent);
+  color: var(--p-deep);
+  font: 600 12.5px/1 'Poppins', sans-serif;
+}
+[data-lang='kn'] .mn-cart-btn { font-family: 'Noto Sans Kannada', sans-serif; }
+.mn-cart-btn b {
+  display: grid; place-items: center;
+  min-width: 22px; height: 22px; padding: 0 6px; border-radius: 999px;
+  background: linear-gradient(150deg, var(--p-gold-light), var(--p-gold-dark));
+  color: #12182c; font-size: 11px;
+}
+
+/* Cart sheet */
+@keyframes mn-cart-in { from { transform: translateY(14px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.mn-cart {
+  position: fixed; inset: 0; z-index: 60;
+  display: grid; place-items: end center;
+  padding: 20px;
+  background: rgba(6, 11, 26, .55);
+  backdrop-filter: blur(4px);
+}
+.mn-cart-panel {
+  width: min(460px, 100%); max-height: 66vh;
+  display: flex; flex-direction: column;
+  border-radius: 18px; overflow: hidden;
+  background: var(--p-card);
+  border: 1px solid color-mix(in srgb, var(--p-gold) 34%, transparent);
+  box-shadow: 0 30px 70px -24px rgba(0, 0, 0, .6);
+  animation: mn-cart-in .3s cubic-bezier(.16, 1, .3, 1) both;
+}
+.mn-cart-hd {
+  display: flex; align-items: center; gap: 12px;
+  padding: 16px 18px;
+  border-bottom: 1px solid color-mix(in srgb, var(--p-deep) 12%, transparent);
+}
+.mn-cart-hd h4 {
+  margin: 0; flex: 1;
+  font: 700 15px/1.2 'Playfair Display', serif; color: var(--p-deep);
+}
+[data-lang='kn'] .mn-cart-hd h4 { font-family: 'Noto Sans Kannada', sans-serif; font-weight: 600; }
+.mn-cart-hd button {
+  border: 0; background: none; cursor: pointer;
+  font-size: 22px; line-height: 1; color: var(--p-muted);
+}
+.mn-cart-list { overflow-y: auto; padding: 8px; }
+.mn-cart-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 11px 12px; border-radius: 9px;
+  font: 500 13px/1.3 'Poppins', sans-serif; color: var(--p-text);
+}
+[data-lang='kn'] .mn-cart-row { font-family: 'Noto Sans Kannada', sans-serif; }
+.mn-cart-row:nth-child(odd) { background: color-mix(in srgb, var(--p-deep) 4%, transparent); }
+.mn-cart-row span { flex: 1; min-width: 0; }
+.mn-cart-row.is-custom span::after {
+  content: ' (custom)'; font-size: 11px; color: var(--p-muted);
+}
+.mn-cart-row button {
+  flex: none; width: 24px; height: 24px; border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--p-deep) 15%, transparent);
+  background: none; cursor: pointer; color: var(--p-muted); font-size: 14px; line-height: 1;
+}
+.mn-cart-row button:hover { border-color: #ef4444; color: #b91c1c; }
+
+@media (max-width: 560px) {
+  .mn-tools { top: 56px; }
+  .mn-row { gap: 10px; padding: 12px 2px; }
+  .mn-row-img { width: 50px; height: 50px; }
+  .mn-add { padding: 8px 12px; font-size: 11.5px; }
+  .mn-diet button { padding: 7px 11px; font-size: 11.5px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mn-cart-panel { animation: none; }
+}

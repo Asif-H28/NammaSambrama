@@ -37,6 +37,16 @@ const bookingSlice = createSlice({
       state.customItems = []
       state.step = 'menu'
     },
+    /**
+     * Drop selected ids that no longer exist in the catalogue. Selections are
+     * held in Redux, so a dish id that changes or is deleted server-side would
+     * otherwise linger as an unremovable phantom row.
+     */
+    pruneSelections(state, action: PayloadAction<string[]>) {
+      const valid = new Set(action.payload)
+      const kept = Array.from(new Set(state.selectedDishIds)).filter((id) => valid.has(id))
+      if (kept.length !== state.selectedDishIds.length) state.selectedDishIds = kept
+    },
     toggleDish(state, action: PayloadAction<string>) {
       const id = action.payload
       state.selectedDishIds = state.selectedDishIds.includes(id)
@@ -66,6 +76,7 @@ const bookingSlice = createSlice({
 
 export const {
   resetBooking,
+  pruneSelections,
   chooseEventType,
   chooseCustomEvent,
   toggleDish,
