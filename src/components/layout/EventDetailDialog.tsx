@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import type { EventType } from '@/types'
 import { ART, artFor } from '@/data/icons'
+import { LazyImage } from '@/components/layout/LazyImage'
 import { photoForEventType } from '@/data/eventTypePhotos'
 
 /**
@@ -38,13 +39,8 @@ export function EventDetailDialog({
   if (!event) return null
 
   const typePhoto = photoForEventType(event.eventType)
-  const art = event.eventImage
-    ? `center/cover no-repeat url(${event.eventImage})`
-    : typePhoto
-      ? `center/cover no-repeat url(${typePhoto})`
-      : event.eventIcon
-        ? ART[event.eventIcon]
-        : artFor(event.eventTitle)
+  const photoSrc = event.eventImage || typePhoto || ''
+  const artFallback = event.eventIcon ? ART[event.eventIcon] : artFor(event.eventTitle)
 
   const food = event.foodMenu.filter((l) => l.text.trim())
   const design = event.eventDesign.filter((l) => l.text.trim())
@@ -78,7 +74,7 @@ export function EventDetailDialog({
       >
         {/* Header image */}
         <div className="relative flex-none" style={{ aspectRatio: '16 / 7' }}>
-          <div className="absolute inset-0" style={{ background: art }} />
+          <LazyImage src={photoSrc} fallback={artFallback} alt={event.eventTitle} eager />
           <div
             className="absolute inset-x-0 bottom-0"
             style={{ height: 130, background: 'linear-gradient(transparent,rgba(8,17,40,.86))' }}

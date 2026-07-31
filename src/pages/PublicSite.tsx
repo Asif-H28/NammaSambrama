@@ -8,6 +8,7 @@ import { PublicHeader } from '@/components/layout/PublicHeader'
 import { NSLogo, NSLockup } from '@/components/brand/NSLogo'
 import { EventDetailDialog } from '@/components/layout/EventDetailDialog'
 import { PublicLoader } from '@/components/layout/PublicLoader'
+import { LazyImage } from '@/components/layout/LazyImage'
 import { fetchEvents, fetchFoods } from '@/features/catalog/catalogThunks'
 import type { EventType } from '@/types'
 
@@ -579,13 +580,10 @@ export function PublicSite({ standalone = false }: { standalone?: boolean }) {
             >
               {publicList.map((e, i) => {
                 const typePhoto = photoForEventType(e.eventType)
-                const artStyle = e.eventImage
-                  ? `center/cover no-repeat url(${e.eventImage})`
-                  : typePhoto
-                    ? `center/cover no-repeat url(${typePhoto})`
-                    : e.eventIcon
-                      ? ART[e.eventIcon]
-                      : artFor(e.eventTitle)
+                // Real URL goes to <img> so it can lazy-load; the generated
+                // gradient is only a fallback.
+                const photoSrc = e.eventImage || typePhoto || ''
+                const artFallback = e.eventIcon ? ART[e.eventIcon] : artFor(e.eventTitle)
                 return (
                   <article
                     key={e.id}
@@ -610,7 +608,12 @@ export function PublicSite({ standalone = false }: { standalone?: boolean }) {
                     {/* 16:9 frame — matches the recommended upload ratio, so photos
                         are never squashed regardless of column width. */}
                     <div className="relative overflow-hidden" style={{ aspectRatio: '16 / 9' }}>
-                      <div className="absolute inset-0 ps-zoom" style={{ background: artStyle }} />
+                      <LazyImage
+                        src={photoSrc}
+                        fallback={artFallback}
+                        alt={e.eventTitle}
+                        eager={i < 3}
+                      />
                       {/* Bottom scrim so the type chip stays legible */}
                       <div
                         className="absolute inset-x-0 bottom-0"
@@ -822,13 +825,11 @@ export function PublicSite({ standalone = false }: { standalone?: boolean }) {
                   >
                     {/* Cinematic category banner — the image finally gets room */}
                     <div className="fc-banner">
-                      <div
-                        className="fc-banner-img"
-                        style={{
-                          background: cat.foodtypeimage
-                            ? `center/cover no-repeat url(${cat.foodtypeimage})`
-                            : artFor(cat.foodType),
-                        }}
+                      <LazyImage
+                        src={cat.foodtypeimage}
+                        fallback={artFor(cat.foodType)}
+                        alt={cat.foodType}
+                        eager={ci < 2}
                       />
                       {/* Navy scrim keeps the title legible over any photo */}
                       <div className="fc-banner-scrim" />
