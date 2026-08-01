@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { setDiet, setPublicFilter, openVideo } from '@/features/ui/uiSlice'
 import { ART, artFor, EventIcon } from '@/data/icons'
@@ -100,50 +100,50 @@ const EVENT_GROUPS: {
   icon: IconKey
   match: string[]
 }[] = [
-  {
-    key: 'weddings',
-    en: 'Weddings',
-    kn: 'ಮದುವೆ',
-    icon: 'rings',
-    match: ['wedding', 'engagement', 'reception', 'mehendi & sangeet', 'haldi'],
-  },
-  {
-    key: 'ceremonies',
-    en: 'Ceremonies',
-    kn: 'ಸಮಾರಂಭ',
-    icon: 'plant',
-    match: [
-      'gruhapravesha',
-      'namakarana',
-      'upanayana',
-      'seemantha',
-      'shashtiabdapoorthi',
-      'satyanarayana pooja',
-      'ritu shanti',
-    ],
-  },
-  {
-    key: 'milestones',
-    en: 'Milestones',
-    kn: 'ಸಂಭ್ರಮ',
-    icon: 'cake',
-    match: ['birthday', 'anniversary'],
-  },
-  {
-    key: 'corporate',
-    en: 'Corporate',
-    kn: 'ಕಾರ್ಪೊರೇಟ್',
-    icon: 'briefcase',
-    match: ['corporate event', 'product launch'],
-  },
-  {
-    key: 'social',
-    en: 'Social',
-    kn: 'ಸಾಮಾಜಿಕ',
-    icon: 'music',
-    match: ['school function', 'get-together', 'festival event'],
-  },
-]
+    {
+      key: 'weddings',
+      en: 'Weddings',
+      kn: 'ಮದುವೆ',
+      icon: 'rings',
+      match: ['wedding', 'engagement', 'reception', 'mehendi & sangeet', 'haldi'],
+    },
+    {
+      key: 'ceremonies',
+      en: 'Ceremonies',
+      kn: 'ಸಮಾರಂಭ',
+      icon: 'plant',
+      match: [
+        'gruhapravesha',
+        'namakarana',
+        'upanayana',
+        'seemantha',
+        'shashtiabdapoorthi',
+        'satyanarayana pooja',
+        'ritu shanti',
+      ],
+    },
+    {
+      key: 'milestones',
+      en: 'Milestones',
+      kn: 'ಸಂಭ್ರಮ',
+      icon: 'cake',
+      match: ['birthday', 'anniversary'],
+    },
+    {
+      key: 'corporate',
+      en: 'Corporate',
+      kn: 'ಕಾರ್ಪೊರೇಟ್',
+      icon: 'briefcase',
+      match: ['corporate event', 'product launch'],
+    },
+    {
+      key: 'social',
+      en: 'Social',
+      kn: 'ಸಾಮಾಜಿಕ',
+      icon: 'music',
+      match: ['school function', 'get-together', 'festival event'],
+    },
+  ]
 
 /** Which group a stored eventType belongs to. */
 function groupOf(eventType: string): string {
@@ -218,8 +218,8 @@ export function PublicSite({ standalone = false }: { standalone?: boolean }) {
   // Types inside the selected group, for the secondary chip row
   const subTypes = isGroupFilter
     ? Array.from(
-        new Set(events.filter((e) => groupOf(e.eventType) === publicFilter).map((e) => e.eventType)),
-      )
+      new Set(events.filter((e) => groupOf(e.eventType) === publicFilter).map((e) => e.eventType)),
+    )
     : []
 
   const foodSections = foods
