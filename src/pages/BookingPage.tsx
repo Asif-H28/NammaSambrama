@@ -10,6 +10,10 @@ import {
   setContact,
   resetBooking,
   pruneSelections,
+  loadDraft,
+  getBookingDraft,
+  saveBookingDraft,
+  clearBookingDraft,
 } from '@/features/booking/bookingSlice'
 import { showToast } from '@/features/ui/uiSlice'
 import { submitEnquiry } from '@/features/enquiries/enquiriesThunks'
@@ -19,6 +23,7 @@ import { photoForEventType } from '@/data/eventTypePhotos'
 import { preselectedDishIds } from '@/lib/matchDishes'
 import { usePublicLanguage } from '@/hooks/usePublicLanguage'
 import { PublicHeader } from '@/components/layout/PublicHeader'
+import { PublicLoader } from '@/components/layout/PublicLoader'
 import { Toast } from '@/components/layout/Toast'
 
 /** Items shown in the review summary before "View all" opens the full list. */
@@ -38,16 +43,39 @@ export function BookingPage() {
   const [customName, setCustomName] = useState('')
   const [addingFor, setAddingFor] = useState<string | null>(null)
   const [newItemName, setNewItemName] = useState('')
+  const [pendingTarget, setPendingTarget] = useState<string | null>(null)
   const theme = useAppSelector((s) => s.ui.theme)
   const mode = useAppSelector((s) => s.ui.mode)
   const eventsLoaded = useAppSelector((s) => s.catalog.eventsLoaded)
   const foodsLoaded = useAppSelector((s) => s.catalog.foodsLoaded)
+
+  // Auto-restore draft from browser storage if Redux state is uninitialized
+  useEffect(() => {
+    if (!booking.eventTypeId && !booking.customEventName && !booking.selectedDishIds.length) {
+      const draft = getBookingDraft()
+      if (draft) {
+        dispatch(loadDraft(draft))
+      }
+    }
+  }, [dispatch])
+
+  // Auto-save draft to browser storage whenever selections change
+  useEffect(() => {
+    if (booking.eventTypeId || booking.customEventName || booking.selectedDishIds.length > 0) {
+      saveBookingDraft(booking)
+    }
+  }, [booking])
 
   // Public route — reads the catalog from the unauthenticated endpoints
   useEffect(() => {
     if (!eventsLoaded) dispatch(fetchEvents())
     if (!foodsLoaded) dispatch(fetchFoods())
   }, [eventsLoaded, foodsLoaded, dispatch])
+
+  // Scroll to top smoothly whenever booking step changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [booking.step])
 
   const eventTypes = useMemo(() => {
     const seen = new Map<string, (typeof events)[number]>()
@@ -96,6 +124,40 @@ export function BookingPage() {
 
   const selectedDishes = foods.flatMap((c) => c.dishlist.filter((d) => booking.selectedDishIds.includes(d.id)))
 
+  if (!eventsLoaded || !foodsLoaded) {
+    return <PublicLoader lang={lang} />
+  }
+
+  const handleInterceptNavigate = (href: string, e: React.MouseEvent) => {
+    if (booking.step === 'review') {
+      e.preventDefault()
+      setPendingTarget(href)
+    }
+  }
+
+  const handleSaveAndLeave = () => {
+    saveBookingDraft(booking)
+    dispatch(showToast(lang === 'kn' ? 'ಬುಕಿಂಗ್ ಕರಡಾಗಿ ಉಳಿಸಲಾಗಿದೆ ✓' : 'Booking saved as draft ✓'))
+    if (pendingTarget) {
+      window.location.href = pendingTarget
+    }
+    setPendingTarget(null)
+  }
+
+  const handleDiscardAndLeave = () => {
+    clearBookingDraft()
+    dispatch(resetBooking())
+    if (pendingTarget) {
+      window.location.href = pendingTarget
+    }
+    setPendingTarget(null)
+  }
+
+  const handleManualSaveDraft = () => {
+    saveBookingDraft(booking)
+    dispatch(showToast(lang === 'kn' ? 'ಬುಕಿಂಗ್ ಕರಡು ಉಳಿಸಲಾಗಿದೆ ✓' : 'Booking draft saved ✓'))
+  }
+
   const handleSubmitEnquiry = async () => {
     const result = await dispatch(
       submitEnquiry({
@@ -124,6 +186,7 @@ export function BookingPage() {
       return
     }
 
+    clearBookingDraft()
     dispatch(showToast(lang === 'kn' ? '🎉 ನಿಮ್ಮ ವಿನಂತಿ ಸಲ್ಲಿಸಲಾಗಿದೆ!' : '🎉 Your enquiry has been submitted!'))
     dispatch(resetBooking())
   }
@@ -134,9 +197,9 @@ export function BookingPage() {
       data-mode={mode}
       style={{ background: 'var(--p-bg)', color: 'var(--p-text)', fontFamily: "'Poppins',sans-serif", minHeight: '100vh' }}
     >
-      <PublicHeader lang={lang} onLangChange={setLang} />
+      <PublicHeader lang={lang} onLangChange={setLang} onNavigate={handleInterceptNavigate} />
 
-      <BookingHero lang={lang} stepIndex={stepIndex} />
+      <BookingHero lang={lang} stepIndex={stepIndex} onNavigate={handleInterceptNavigate} />
 
       <div className="mx-auto" style={{ maxWidth: 1080, padding: '34px 20px 100px' }}>
         {booking.step === 'type' && (
@@ -182,6 +245,7 @@ export function BookingPage() {
             lang={lang}
             t={t}
             onBack={() => dispatch(goToStep('menu'))}
+            onSaveDraft={handleManualSaveDraft}
             onToggleDish={(id) => dispatch(toggleDish(id))}
             onRemoveCustom={(id) => dispatch(removeCustomItem(id))}
             onContactChange={(patch) => dispatch(setContact(patch))}
@@ -189,17 +253,57 @@ export function BookingPage() {
           />
         )}
       </div>
+
+      {pendingTarget !== null && (
+        <LeaveWarningModal
+          lang={lang}
+          onSaveAndLeave={handleSaveAndLeave}
+          onDiscardAndLeave={handleDiscardAndLeave}
+          onCancel={() => setPendingTarget(null)}
+        />
+      )}
+
       <Toast />
     </div>
   )
 }
 
 /** Compact progress rail — steps stay legible on a phone. */
-function BookingHero({ lang, stepIndex }: { lang: 'en' | 'kn'; stepIndex: number }) {
+function BookingHero({
+  lang,
+  stepIndex,
+  onNavigate,
+}: {
+  lang: 'en' | 'kn'
+  stepIndex: number
+  onNavigate?: (href: string, e: React.MouseEvent) => void
+}) {
   const kn = lang === 'kn'
   return (
     <header className="bk-hero">
       <div className="bk-hero-inner">
+        <a
+          href="/"
+          onClick={(e) => onNavigate && onNavigate('/', e)}
+          className="inline-flex items-center gap-2"
+          style={{
+            color: 'var(--p-gold-light, #f4ede0)',
+            fontSize: 13,
+            fontWeight: 600,
+            textDecoration: 'none',
+            padding: '7px 16px',
+            borderRadius: 999,
+            background: 'rgba(255, 255, 255, 0.08)',
+            border: '1px solid rgba(255, 255, 255, 0.18)',
+            marginBottom: 20,
+            transition: 'all .2s ease',
+          }}
+        >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M19 12H5M12 19l-7-7 7-7" />
+          </svg>
+          {kn ? 'ಮುಖಪುಟಕ್ಕೆ ಹಿಂತಿರುಗಿ' : 'Back to Main Page'}
+        </a>
         <p className="bk-kicker">{kn ? 'ಬುಕಿಂಗ್ ಪ್ರಾರಂಭಿಸಿ' : 'Start your booking'}</p>
         <h1 className="bk-title">
           {kn ? 'ನಿಮ್ಮ ಕನಸಿನ ಆಚರಣೆ' : 'Design your dream celebration'}
@@ -250,11 +354,11 @@ function EventTypeStep({
   return (
     <section>
       <div className="bk-head">
-        <h2 className="bk-h2">{kn ? 'ಯಾವ ಸಂದರ್ಭ?' : 'What are we celebrating?'}</h2>
+        <h2 className="bk-h2">{kn ? 'ನಿಮ್ಮ ಈವೆಂಟ್ ಮಾದರಿಯನ್ನು ಆಯ್ಕೆ ಮಾಡಿ' : 'Select Your Event Type'}</h2>
         <p className="bk-sub">
           {kn
-            ? 'ಕೆಳಗಿನ ಆಚರಣೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ — ಅಥವಾ ನಿಮ್ಮದೇ ತಿಳಿಸಿ.'
-            : 'Pick a celebration below — or tell us your own.'}
+            ? 'ಇಲ್ಲಿ ಪಟ್ಟಿಯಲ್ಲಿಲ್ಲದಿದ್ದರೆ ನಿಮ್ಮ ಈವೆಂಟ್ ಹೆಸರು ಸೇರಿಸಿ.'
+            : 'If not listed here Add your event name.'}
         </p>
       </div>
 
@@ -667,6 +771,7 @@ function ReviewStep({
   lang,
   t,
   onBack,
+  onSaveDraft,
   onToggleDish,
   onRemoveCustom,
   onContactChange,
@@ -678,6 +783,7 @@ function ReviewStep({
   lang: 'en' | 'kn'
   t: (s: string) => string
   onBack: () => void
+  onSaveDraft: () => void
   onToggleDish: (id: string) => void
   onRemoveCustom: (id: string) => void
   onContactChange: (
@@ -955,6 +1061,9 @@ function ReviewStep({
                 : 'Fill the required fields'}
           </span>
           <div className="bk-bar-acts">
+            <button className="bk-btn bk-btn-ghost" onClick={onSaveDraft} title={kn ? 'ಕರಡಾಗಿ ಉಳಿಸಿ' : 'Save as Draft'}>
+              💾 {kn ? 'ಕರಡು ಉಳಿಸಿ' : 'Save Draft'}
+            </button>
             <button className="bk-btn bk-btn-ghost" onClick={onBack}>
               {kn ? 'ಹಿಂದೆ' : 'Back'}
             </button>
@@ -975,5 +1084,132 @@ function ReviewStep({
         </div>
       </div>
     </section>
+  )
+}
+
+function LeaveWarningModal({
+  lang,
+  onSaveAndLeave,
+  onDiscardAndLeave,
+  onCancel,
+}: {
+  lang: 'en' | 'kn'
+  onSaveAndLeave: () => void
+  onDiscardAndLeave: () => void
+  onCancel: () => void
+}) {
+  const kn = lang === 'kn'
+  return (
+    <div
+      className="mn-modal"
+      style={{ zIndex: 100, background: 'rgba(11, 18, 38, 0.75)', backdropFilter: 'blur(4px)' }}
+      role="dialog"
+      aria-modal="true"
+    >
+      <div
+        className="mn-modal-panel text-center"
+        style={{
+          maxWidth: 480,
+          padding: '32px 28px',
+          borderRadius: 24,
+          background: 'var(--p-card, #ffffff)',
+          boxShadow: '0 20px 50px rgba(0,0,0,0.3)',
+          border: '1px solid color-mix(in srgb, var(--p-gold) 35%, transparent)',
+        }}
+      >
+        <div style={{ marginBottom: 20 }}>
+          <div
+            style={{
+              width: 56,
+              height: 56,
+              borderRadius: '50%',
+              background: 'color-mix(in srgb, var(--p-gold) 15%, transparent)',
+              color: 'var(--p-gold-dark)',
+              display: 'grid',
+              placeItems: 'center',
+              margin: '0 auto 16px',
+            }}
+          >
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+              <line x1="12" y1="9" x2="12" y2="13"/>
+              <line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+          </div>
+          <h3
+            style={{
+              margin: '0 0 8px',
+              font: "700 22px/1.3 'Playfair Display', serif",
+              color: 'var(--p-deep)',
+            }}
+          >
+            {kn ? 'ಉಳಿಸದ ವಿವರಗಳು ಇವೆ!' : 'Unsaved Booking Selections'}
+          </h3>
+          <p
+            style={{
+              margin: 0,
+              fontSize: 14,
+              lineHeight: 1.6,
+              color: 'var(--p-muted)',
+            }}
+          >
+            {kn
+              ? 'ನಿಮ್ಮ ಈವೆಂಟ್ ಮತ್ತು ಮೆನು ವಿವರಗಳನ್ನು ಕಳೆದುಕೊಳ್ಳದಿರಲು ಕರಡಾಗಿ (Draft) ಉಳಿಸಬಹುದು. ಏನು ಮಾಡಲು ಬಯಸುತ್ತೀರಿ?'
+              : 'You have active event and menu selections on the review page. Would you like to save your booking as a draft before leaving?'}
+          </p>
+        </div>
+
+        <div className="flex flex-col gap-3">
+          <button
+            onClick={onSaveAndLeave}
+            style={{
+              width: '100%',
+              padding: '13px 20px',
+              borderRadius: 14,
+              background: 'linear-gradient(150deg,var(--p-gold-light),var(--p-gold) 45%,var(--p-gold-dark))',
+              color: 'var(--p-deeper)',
+              font: "600 14px/1 'Poppins',sans-serif",
+              border: 'none',
+              cursor: 'pointer',
+              boxShadow: '0 4px 14px -3px rgba(212,175,55,.4)',
+            }}
+          >
+            💾 {kn ? 'ಕರಡಾಗಿ ಉಳಿಸಿ ಮತ್ತು ನಿರ್ಗಮಿಸಿ' : 'Save as Draft & Leave'}
+          </button>
+
+          <button
+            onClick={onDiscardAndLeave}
+            style={{
+              width: '100%',
+              padding: '12px 20px',
+              borderRadius: 14,
+              background: 'transparent',
+              color: '#ef4444',
+              font: "600 13.5px/1 'Poppins',sans-serif",
+              border: '1px solid rgba(239, 68, 68, 0.35)',
+              cursor: 'pointer',
+            }}
+          >
+            🗑️ {kn ? 'ತ್ಯಜಿಸಿ ಮತ್ತು ನಿರ್ಗಮಿಸಿ' : 'Discard & Leave'}
+          </button>
+
+          <button
+            onClick={onCancel}
+            style={{
+              width: '100%',
+              padding: '11px 20px',
+              borderRadius: 14,
+              background: 'transparent',
+              color: 'var(--p-muted)',
+              font: "500 13.5px/1 'Poppins',sans-serif",
+              border: 'none',
+              cursor: 'pointer',
+            }}
+          >
+            {kn ? 'ಇಲ್ಲೇ ಇರಿ (ರದ್ದು)' : 'Cancel & Stay on Review'}
+          </button>
+        </div>
+      </div>
+    </div>
   )
 }

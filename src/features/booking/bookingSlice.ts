@@ -71,8 +71,43 @@ const bookingSlice = createSlice({
     ) {
       Object.assign(state, action.payload)
     },
+    loadDraft(_state, action: PayloadAction<BookingState>) {
+      return action.payload
+    },
   },
 })
+
+const DRAFT_KEY = 'namma-sambrama:booking-draft'
+
+export function getBookingDraft(): BookingState | null {
+  try {
+    const raw = localStorage.getItem(DRAFT_KEY)
+    if (!raw) return null
+    const parsed = JSON.parse(raw) as BookingState
+    if (parsed && typeof parsed === 'object' && (parsed.eventTypeId || parsed.customEventName || parsed.selectedDishIds?.length)) {
+      return parsed
+    }
+    return null
+  } catch {
+    return null
+  }
+}
+
+export function saveBookingDraft(state: BookingState) {
+  try {
+    localStorage.setItem(DRAFT_KEY, JSON.stringify(state))
+  } catch {
+    // ignore storage errors
+  }
+}
+
+export function clearBookingDraft() {
+  try {
+    localStorage.removeItem(DRAFT_KEY)
+  } catch {
+    // ignore storage errors
+  }
+}
 
 export const {
   resetBooking,
@@ -84,5 +119,6 @@ export const {
   removeCustomItem,
   goToStep,
   setContact,
+  loadDraft,
 } = bookingSlice.actions
 export default bookingSlice.reducer

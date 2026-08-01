@@ -3,21 +3,30 @@ import type { PublicLang } from '@/hooks/usePublicLanguage'
 import { NSLogo } from '@/components/brand/NSLogo'
 
 const NAV = [
-  { href: '#events', en: 'Events', kn: 'ಈವೆಂಟ್‌ಗಳು' },
-  { href: '#menu', en: 'Menu', kn: 'ಮೆನು' },
-  { href: '#payment', en: 'Payment', kn: 'ಪಾವತಿ' },
-  { href: '#contact', en: 'Contact', kn: 'ಸಂಪರ್ಕ' },
+  { href: '/', en: 'Home', kn: 'ಮುಖಪುಟ' },
+  { href: '/#events', en: 'Events', kn: 'ಈವೆಂಟ್‌ಗಳು' },
+  { href: '/#menu', en: 'Menu', kn: 'ಮೆನು' },
+  { href: '/#payment', en: 'Payment', kn: 'ಪಾವತಿ' },
+  { href: '/#contact', en: 'Contact', kn: 'ಸಂಪರ್ಕ' },
 ]
 
 export function PublicHeader({
   lang,
   onLangChange,
+  onNavigate,
 }: {
   lang: PublicLang
   onLangChange: (lang: PublicLang) => void
+  onNavigate?: (href: string, e: React.MouseEvent) => void
 }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
+
+  const handleLinkClick = (href: string, e: React.MouseEvent) => {
+    if (onNavigate) {
+      onNavigate(href, e)
+    }
+  }
 
   // Close on outside click and on Escape
   useEffect(() => {
@@ -44,7 +53,12 @@ export function PublicHeader({
       }}
     >
       {/* Brand mark */}
-      <a href="#top" className="flex items-center gap-[10px] flex-none" style={{ textDecoration: 'none' }}>
+      <a
+        href="/"
+        onClick={(e) => handleLinkClick('/', e)}
+        className="flex items-center gap-[10px] flex-none"
+        style={{ textDecoration: 'none' }}
+      >
         <NSLogo size={36} />
         <span
           style={{
@@ -59,7 +73,12 @@ export function PublicHeader({
       {/* Desktop section links */}
       <nav className="ps-nav-links flex items-center gap-[24px]" style={{ marginLeft: 'clamp(12px,4vw,42px)' }}>
         {NAV.map((item) => (
-          <a key={item.href} href={item.href} className="ps-navlink">
+          <a
+            key={item.href}
+            href={item.href}
+            onClick={(e) => handleLinkClick(item.href, e)}
+            className="ps-navlink"
+          >
             {lang === 'kn' ? item.kn : item.en}
           </a>
         ))}
@@ -117,7 +136,14 @@ export function PublicHeader({
           {menuOpen && (
             <div className="ps-burger-menu">
               {NAV.map((item) => (
-                <a key={item.href} href={item.href} onClick={() => setMenuOpen(false)}>
+                <a
+                  key={item.href}
+                  href={item.href}
+                  onClick={(e) => {
+                    setMenuOpen(false)
+                    handleLinkClick(item.href, e)
+                  }}
+                >
                   {lang === 'kn' ? item.kn : item.en}
                 </a>
               ))}
