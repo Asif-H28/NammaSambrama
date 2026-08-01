@@ -10,6 +10,7 @@ import { EventTypes } from '@/pages/EventTypes'
 import { EventForm } from '@/pages/EventForm'
 import { FoodCategories } from '@/pages/FoodCategories'
 import { FoodForm } from '@/pages/FoodForm'
+import { PaymentSettings } from '@/pages/PaymentSettings'
 import { PublicSite } from '@/pages/PublicSite'
 
 function Screen() {
@@ -25,6 +26,8 @@ function Screen() {
       return <FoodCategories />
     case 'food-form':
       return <FoodForm />
+    case 'payment':
+      return <PaymentSettings />
     case 'public':
       return <PublicSite />
   }

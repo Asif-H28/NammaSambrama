@@ -8,6 +8,7 @@ export type Screen =
   | 'event-form'
   | 'foods'
   | 'food-form'
+  | 'payment'
   | 'public'
 
 export type IconKey =
@@ -100,4 +101,11 @@ export interface Enquiry {
   eventTime: string
   contactNotes: string
   status: 'new' | 'contacted' | 'closed'
+}
+
+export interface PaymentSettings {
+  upiId: string
+  qrImageUrl: string
+  qrImageId?: string
+  payeeName: string
 }

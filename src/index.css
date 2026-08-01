@@ -2828,3 +2828,128 @@ textarea.input { min-height: 90px; resize: vertical; }
   font-size: 13px;
   color: var(--p-muted);
 }
+
+/* ╔═══════════════════════════════════════════════════════════════════╗
+   ║  Payment QR Section — Public Site                                ║
+   ║  Scroll-triggered scale-up animation (PhonePe style)             ║
+   ╚═══════════════════════════════════════════════════════════════════╝ */
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.qr-section {
+  position: relative;
+  overflow: hidden;
+}
+
+/* ── QR wrapper: starts tiny, scales up on scroll ── */
+.qr-scale-wrapper {
+  transform: scale(0.3);
+  opacity: 0;
+  transition:
+    transform .9s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity .7s ease;
+  will-change: transform, opacity;
+}
+.qr-scale-wrapper.is-visible {
+  transform: scale(1);
+  opacity: 1;
+}
+
+/* ── QR card styling ── */
+.qr-card-inner {
+  position: relative;
+  display: inline-block;
+  padding: 10px;
+  border-radius: 24px;
+  background: rgba(255,255,255,.06);
+  border: 1.5px solid color-mix(in srgb, var(--p-gold) 35%, transparent);
+  box-shadow:
+    0 0 0 0 rgba(212,175,55,0),
+    0 20px 60px -20px rgba(0,0,0,.5);
+  transition: box-shadow 1s ease .3s;
+}
+.qr-scale-wrapper.is-visible .qr-card-inner {
+  box-shadow:
+    0 0 60px -10px rgba(212,175,55,.2),
+    0 20px 60px -20px rgba(0,0,0,.5);
+}
+
+.qr-card-inner img {
+  display: block;
+  width: clamp(180px, 40vw, 260px);
+  height: clamp(180px, 40vw, 260px);
+  border-radius: 18px;
+  object-fit: contain;
+  background: #fff;
+}
+
+/* ── Pay Now button ── */
+.qr-pay-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 16px 36px;
+  border-radius: 999px;
+  background: linear-gradient(150deg, var(--p-gold-light), var(--p-gold) 45%, var(--p-gold-dark));
+  color: #12182c;
+  font: 700 15px/1 'Poppins', sans-serif;
+  text-decoration: none;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 12px 32px -10px rgba(212,175,55,.55);
+  transform: translateY(20px);
+  opacity: 0;
+  transition:
+    transform .7s cubic-bezier(0.22, 1, 0.36, 1) .4s,
+    opacity .5s ease .4s,
+    box-shadow .3s ease,
+    filter .2s ease;
+}
+.qr-scale-wrapper.is-visible ~ .qr-pay-area .qr-pay-btn,
+.qr-section.is-visible .qr-pay-btn {
+  transform: translateY(0);
+  opacity: 1;
+}
+.qr-pay-btn:hover {
+  box-shadow: 0 18px 40px -8px rgba(212,175,55,.75);
+  filter: brightness(1.08);
+}
+.qr-pay-btn:active {
+  transform: scale(.96);
+}
+
+/* ── Decorative corner accents ── */
+.qr-corner {
+  position: absolute;
+  width: 50px;
+  height: 50px;
+  opacity: .25;
+  pointer-events: none;
+}
+.qr-corner path {
+  fill: none;
+  stroke: var(--p-gold);
+  stroke-width: 1.2;
+  stroke-linecap: round;
+}
+
+/* ── Payee label fade-in ── */
+.qr-payee {
+  transform: translateY(12px);
+  opacity: 0;
+  transition:
+    transform .6s cubic-bezier(0.22, 1, 0.36, 1) .55s,
+    opacity .4s ease .55s;
+}
+.qr-section.is-visible .qr-payee {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .qr-scale-wrapper { transform: scale(1) !important; opacity: 1 !important; transition: none !important; }
+  .qr-pay-btn { transform: none !important; opacity: 1 !important; transition: none !important; }
+  .qr-payee { transform: none !important; opacity: 1 !important; transition: none !important; }
+}

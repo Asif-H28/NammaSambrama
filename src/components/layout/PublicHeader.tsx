@@ -5,7 +5,7 @@ import { NSLogo } from '@/components/brand/NSLogo'
 const NAV = [
   { href: '#events', en: 'Events', kn: 'ಈವೆಂಟ್‌ಗಳು' },
   { href: '#menu', en: 'Menu', kn: 'ಮೆನು' },
-  { href: '#process', en: 'How it works', kn: 'ಹೇಗೆ' },
+  { href: '#payment', en: 'Payment', kn: 'ಪಾವತಿ' },
   { href: '#contact', en: 'Contact', kn: 'ಸಂಪರ್ಕ' },
 ]
 

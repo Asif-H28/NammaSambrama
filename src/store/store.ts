@@ -5,6 +5,7 @@ import formsReducer from '@/features/forms/formsSlice'
 import bookingReducer from '@/features/booking/bookingSlice'
 import enquiriesReducer from '@/features/enquiries/enquiriesSlice'
 import authReducer from '@/features/auth/authSlice'
+import paymentReducer from '@/features/payment/paymentSlice'
 import type { ThemeKey, ThemeMode } from '@/types'
 
 const THEME_KEY = 'namma-sambrama:theme'
@@ -31,6 +32,7 @@ export const store = configureStore({
     booking: bookingReducer,
     enquiries: enquiriesReducer,
     auth: authReducer,
+    payment: paymentReducer,
   },
   preloadedState: {
     ui: { ...uiReducer(undefined, { type: '@@INIT' }), ...savedTheme },

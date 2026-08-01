@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { setDiet, setPublicFilter, openVideo } from '@/features/ui/uiSlice'
 import { ART, artFor, EventIcon } from '@/data/icons'
@@ -9,7 +9,9 @@ import { NSLogo, NSLockup } from '@/components/brand/NSLogo'
 import { EventDetailDialog } from '@/components/layout/EventDetailDialog'
 import { PublicLoader } from '@/components/layout/PublicLoader'
 import { LazyImage } from '@/components/layout/LazyImage'
+import { PaymentQrSection } from '@/components/layout/PaymentQrSection'
 import { fetchEvents, fetchFoods } from '@/features/catalog/catalogThunks'
+import { fetchPublicPayment } from '@/features/payment/paymentThunks'
 import type { EventType, IconKey } from '@/types'
 
 const pill = (active: boolean) =>
@@ -180,6 +182,8 @@ export function PublicSite({ standalone = false }: { standalone?: boolean }) {
   const eventsLoaded = useAppSelector((s) => s.catalog.eventsLoaded)
   const foodsLoaded = useAppSelector((s) => s.catalog.foodsLoaded)
   const loading = useAppSelector((s) => s.catalog.loading)
+  const paymentData = useAppSelector((s) => s.payment.data)
+  const paymentLoaded = useAppSelector((s) => s.payment.loaded)
 
   // Which event's full detail dialog is open
   const [detail, setDetail] = useState<EventType | null>(null)
@@ -188,7 +192,8 @@ export function PublicSite({ standalone = false }: { standalone?: boolean }) {
   useEffect(() => {
     if (!eventsLoaded) dispatch(fetchEvents())
     if (!foodsLoaded) dispatch(fetchFoods())
-  }, [eventsLoaded, foodsLoaded, dispatch])
+    if (!paymentLoaded) dispatch(fetchPublicPayment())
+  }, [eventsLoaded, foodsLoaded, paymentLoaded, dispatch])
 
   const types: string[] = []
   events.forEach((e) => {
@@ -1005,6 +1010,18 @@ export function PublicSite({ standalone = false }: { standalone?: boolean }) {
             </div>
           </section>
 
+          {/* ══════════════ PAYMENT QR ══════════════ */}
+          {paymentData && (paymentData.upiId || paymentData.qrImageUrl) && (() => {
+            const upiLink = paymentData.upiId
+              ? `upi://pay?pa=${encodeURIComponent(paymentData.upiId)}&pn=${encodeURIComponent(paymentData.payeeName || 'Namma Sambrama')}`
+              : ''
+            return <PaymentQrSection
+              paymentData={paymentData}
+              upiLink={upiLink}
+              kn={kn}
+            />
+          })()}
+
           {/* ══════════════ CLOSING CTA ══════════════ */}
           <section
             className="ps-grain text-center"
@@ -1131,7 +1148,7 @@ export function PublicSite({ standalone = false }: { standalone?: boolean }) {
                   {[
                     { href: '#events', en: 'Our Events', kn: 'ನಮ್ಮ ಈವೆಂಟ್‌ಗಳು' },
                     { href: '#menu', en: 'Food Menu', kn: 'ಆಹಾರ ಮೆನು' },
-                    { href: '#process', en: 'How It Works', kn: 'ಹೇಗೆ ಕೆಲಸ ಮಾಡುತ್ತದೆ' },
+                    { href: '#payment', en: 'Payment', kn: 'ಪಾವತಿ' },
                   ].map((l) => (
                     <a
                       key={l.href}
