@@ -4,7 +4,7 @@ import { logout } from '@/features/auth/authSlice'
 import { cn } from '@/lib/utils'
 import type { ThemeKey } from '@/types'
 
-type NavScreen = 'dashboard' | 'events' | 'foods' | 'payment' | 'gallery' | 'public'
+type NavScreen = 'dashboard' | 'events' | 'foods' | 'payment' | 'gallery' | 'settings' | 'public'
 
 const THEMES: { key: ThemeKey; name: string; dot: string }[] = [
   { key: 'blurple', name: 'Nocturne Blurple', dot: 'linear-gradient(135deg,#9184d9 50%,#2b2741 50%)' },
@@ -17,6 +17,7 @@ const NAV_ITEMS: { screen: NavScreen; label: string; matches: string[] }[] = [
   { screen: 'foods', label: 'Food Categories', matches: ['foods', 'food-form'] },
   { screen: 'payment', label: 'Payment', matches: ['payment'] },
   { screen: 'gallery', label: 'Gallery', matches: ['gallery'] },
+  { screen: 'settings', label: 'Settings', matches: ['settings'] },
   { screen: 'public', label: 'Public Site', matches: ['public'] },
 ]
 
@@ -76,6 +77,13 @@ function NavIcon({ screen }: { screen: NavScreen }) {
           <path d="m21 15-5-5L5 21" />
         </svg>
       )
+    case 'settings':
+      return (
+        <svg {...props}>
+          <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.72v-.51a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+          <circle cx="12" cy="12" r="3" />
+        </svg>
+      )
   }
 }
 
@@ -99,6 +107,13 @@ export function Sidebar({
     dispatch(goScreen(screenKey))
     onClose?.()
   }
+
+  const visibleNavItems = NAV_ITEMS.filter((item) => {
+    if (item.screen === 'settings') {
+      return admin?.email === 'asif28072001@gmail.com'
+    }
+    return true
+  })
 
   return (
     <aside
@@ -160,7 +175,7 @@ export function Sidebar({
       </div>
 
       <nav className="app-nav flex flex-col gap-[3px]">
-        {NAV_ITEMS.map((item) =>
+        {visibleNavItems.map((item) =>
           item.screen === 'public' ? (
             <a
               key={item.screen}

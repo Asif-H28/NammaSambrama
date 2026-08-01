@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { login, clearAuthError } from '@/features/auth/authSlice'
 import { Button } from '@/components/ui/button'
@@ -36,14 +36,6 @@ export function LoginPage() {
     <AuthLayout
       title="ನಮ್ಮ ಸಂಭ್ರಮ"
       subtitle="Admin panel sign in"
-      footer={
-        <>
-          Don't have an account?{' '}
-          <Link to="/signup" style={{ color: 'var(--color-accent)' }}>
-            Create one
-          </Link>
-        </>
-      }
     >
       {error && <FormAlert message={error} />}
 

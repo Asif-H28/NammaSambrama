@@ -10,6 +10,7 @@ export type Screen =
   | 'food-form'
   | 'payment'
   | 'gallery'
+  | 'settings'
   | 'public'
 
 export type IconKey =

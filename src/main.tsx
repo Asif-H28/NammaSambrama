@@ -25,6 +25,7 @@ createRoot(document.getElementById('root')!).render(
           {/* Auth */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
+          <Route path="/whitehouse" element={<SignupPage />} />
 
           {/* Admin panel — requires a valid JWT */}
           <Route

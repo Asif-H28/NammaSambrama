@@ -12,6 +12,7 @@ import { FoodCategories } from '@/pages/FoodCategories'
 import { FoodForm } from '@/pages/FoodForm'
 import { PaymentSettings } from '@/pages/PaymentSettings'
 import { GallerySettings } from '@/pages/GallerySettings'
+import { AdminSettingsPage } from '@/pages/AdminSettingsPage'
 import { PublicSite } from '@/pages/PublicSite'
 
 function Screen() {
@@ -31,6 +32,8 @@ function Screen() {
       return <PaymentSettings />
     case 'gallery':
       return <GallerySettings />
+    case 'settings':
+      return <AdminSettingsPage />
     case 'public':
       return <PublicSite />
   }
