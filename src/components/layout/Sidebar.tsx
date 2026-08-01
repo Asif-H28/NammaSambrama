@@ -147,7 +147,7 @@ export function Sidebar({
           item.screen === 'public' ? (
             <a
               key={item.screen}
-              href="/public"
+              href="/"
               target="_blank"
               rel="noopener noreferrer"
               title={collapsed ? item.label : undefined}

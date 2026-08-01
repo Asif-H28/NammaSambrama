@@ -33,7 +33,7 @@ export function SignupPage() {
   }, [dispatch])
 
   useEffect(() => {
-    if (token) navigate('/', { replace: true })
+    if (token) navigate('/admin', { replace: true })
   }, [token, navigate])
 
   const emailError =
@@ -61,7 +61,7 @@ export function SignupPage() {
         deliveryError={deliveryError}
         loading={loading}
         error={error}
-        onVerified={() => navigate('/', { replace: true })}
+        onVerified={() => navigate('/admin', { replace: true })}
       />
     )
   }

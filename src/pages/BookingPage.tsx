@@ -21,6 +21,9 @@ import { usePublicLanguage } from '@/hooks/usePublicLanguage'
 import { PublicHeader } from '@/components/layout/PublicHeader'
 import { Toast } from '@/components/layout/Toast'
 
+/** Items shown in the review summary before "View all" opens the full list. */
+const SUMMARY_LIMIT = 6
+
 const STEPS = [
   { key: 'type', en: 'Event', kn: 'ಈವೆಂಟ್' },
   { key: 'menu', en: 'Menu', kn: 'ಮೆನು' },
@@ -174,12 +177,13 @@ export function BookingPage() {
         {booking.step === 'review' && (
           <ReviewStep
             eventLabel={eventLabel}
-            foods={foods}
             selectedDishes={selectedDishes}
             booking={booking}
             lang={lang}
             t={t}
             onBack={() => dispatch(goToStep('menu'))}
+            onToggleDish={(id) => dispatch(toggleDish(id))}
+            onRemoveCustom={(id) => dispatch(removeCustomItem(id))}
             onContactChange={(patch) => dispatch(setContact(patch))}
             onSubmit={handleSubmitEnquiry}
           />
@@ -392,10 +396,6 @@ function MenuStep({
     .map((id) => dishById.get(id))
     .filter((d): d is import('@/types').Dish => Boolean(d))
 
-  // Stale ids (e.g. saved before the catalogue changed) would otherwise keep
-  // the counter above the number of removable rows.
-  const staleCount = new Set(booking.selectedDishIds).size - selectedDishes.length
-
   const chosenCount = selectedDishes.length + booking.customItems.length
 
   const jumpTo = (id: string) => {
@@ -455,6 +455,24 @@ function MenuStep({
         </div>
       </div>
 
+      {/* Mobile course chips — same jump targets as the desktop rail */}
+      <div className="mn-chips">
+        {sections.map((c) => {
+          const n = c.ds.filter((d) => booking.selectedDishIds.includes(d.id)).length
+          return (
+            <button
+              key={c.id}
+              className={`mn-chip ${c.id === activeCat ? 'is-on' : ''}`}
+              onClick={() => jumpTo(c.id)}
+            >
+              <i style={c.foodtypeimage ? { backgroundImage: `url(${c.foodtypeimage})` } : undefined} />
+              {t(c.foodType)}
+              {n > 0 && <b>{n}</b>}
+            </button>
+          )
+        })}
+      </div>
+
       <div className="mn-body">
         {/* Left rail — jump between courses, desktop only */}
         <nav className="mn-rail">
@@ -466,6 +484,14 @@ function MenuStep({
                 className={c.id === activeCat ? 'is-on' : ''}
                 onClick={() => jumpTo(c.id)}
               >
+                <i
+                  className="mn-rail-img"
+                  style={
+                    c.foodtypeimage
+                      ? { backgroundImage: `url(${c.foodtypeimage})` }
+                      : undefined
+                  }
+                />
                 <span>{t(c.foodType)}</span>
                 {n > 0 ? <b>{n}</b> : <em>{c.ds.length}</em>}
               </button>
@@ -478,8 +504,40 @@ function MenuStep({
           {sections.map((c) => (
             <div className="mn-sec" id={`cat-${c.id}`} key={c.id}>
               <div className="mn-sec-hd">
-                <h3>{t(c.foodType)}</h3>
-                <span>{c.ds.length} {kn ? 'ಭಕ್ಷ್ಯಗಳು' : 'items'}</span>
+                {c.foodtypeimage && (
+                  <span className="mn-sec-img">
+                    <img src={c.foodtypeimage} alt="" loading="lazy" decoding="async" />
+                  </span>
+                )}
+                <span className="mn-sec-txt">
+                  <h3>{t(c.foodType)}</h3>
+                  <em>
+                    {c.ds.length} {kn ? 'ಭಕ್ಷ್ಯಗಳು' : 'items'}
+                    {(() => {
+                      const n = c.ds.filter((d) => booking.selectedDishIds.includes(d.id)).length
+                      return n > 0 ? ` · ${n} ${kn ? 'ಆಯ್ಕೆ' : 'added'}` : ''
+                    })()}
+                  </em>
+                </span>
+                <span className="mn-sec-acts">
+                  {/* Add every dish in this course at once */}
+                  {(() => {
+                    const allOn = c.ds.every((d) => booking.selectedDishIds.includes(d.id))
+                    return (
+                      <button
+                        className="mn-sec-all"
+                        onClick={() =>
+                          c.ds.forEach((d) => {
+                            const on = booking.selectedDishIds.includes(d.id)
+                            if (allOn ? on : !on) onToggleDish(d.id)
+                          })
+                        }
+                      >
+                        {allOn ? (kn ? 'ಎಲ್ಲಾ ತೆಗೆದುಹಾಕಿ' : 'Clear all') : kn ? 'ಎಲ್ಲಾ ಸೇರಿಸಿ' : 'Add all'}
+                      </button>
+                    )
+                  })()}
+                </span>
               </div>
 
               {c.ds.map((d) => {
@@ -604,22 +662,24 @@ function MenuStep({
 /* ── Step 3: contact details ───────────────────────────────────── */
 function ReviewStep({
   eventLabel,
-  foods,
   selectedDishes,
   booking,
   lang,
   t,
   onBack,
+  onToggleDish,
+  onRemoveCustom,
   onContactChange,
   onSubmit,
 }: {
   eventLabel: string
-  foods: import('@/types').FoodCategory[]
   selectedDishes: import('@/types').Dish[]
   booking: import('@/types').BookingState
   lang: 'en' | 'kn'
   t: (s: string) => string
   onBack: () => void
+  onToggleDish: (id: string) => void
+  onRemoveCustom: (id: string) => void
   onContactChange: (
     patch: Partial<
       Pick<import('@/types').BookingState, 'contactName' | 'contactPhone' | 'guestCount' | 'eventDate' | 'eventTime' | 'contactNotes'>
@@ -630,12 +690,43 @@ function ReviewStep({
   const kn = lang === 'kn'
   const [touched, setTouched] = useState(false)
   const [sending, setSending] = useState(false)
+  const [viewAll, setViewAll] = useState(false)
+
+  // Escape closes the list, and the page behind must not scroll
+  useEffect(() => {
+    if (!viewAll) return
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setViewAll(false)
+    document.addEventListener('keydown', onKey)
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      document.body.style.overflow = prev
+    }
+  }, [viewAll])
+
 
   const phoneDigits = booking.contactPhone.replace(/\D/g, '')
   const nameOk = booking.contactName.trim().length > 1
   const phoneOk = phoneDigits.length >= 10
   const valid = nameOk && phoneOk
   const itemCount = selectedDishes.length + booking.customItems.length
+
+  // Catalogue dishes and custom requests in one list for the summary
+  const allItems = [
+    ...selectedDishes.map((d) => ({
+      key: d.id,
+      name: t(d.dishName),
+      isVeg: d.isVeg,
+      isCustom: false,
+    })),
+    ...booking.customItems.map((c) => ({
+      key: c.id,
+      name: c.name,
+      isVeg: true,
+      isCustom: true,
+    })),
+  ]
 
   const submit = async () => {
     setTouched(true)
@@ -677,15 +768,19 @@ function ReviewStep({
             </dd>
           </dl>
           {itemCount > 0 && (
-            <div className="bk-summary-items">
-              {selectedDishes.slice(0, 8).map((d) => (
-                <span key={d.id}>{t(d.dishName)}</span>
-              ))}
-              {booking.customItems.slice(0, 4).map((c) => (
-                <span key={c.id}>{c.name}</span>
-              ))}
-              {itemCount > 12 && <span className="is-more">+{itemCount - 12}</span>}
-            </div>
+            <>
+              <div className="bk-summary-items">
+                {allItems.slice(0, SUMMARY_LIMIT).map((it) => (
+                  <span key={it.key}>{it.name}</span>
+                ))}
+                {itemCount > SUMMARY_LIMIT && (
+                  <span className="is-more">+{itemCount - SUMMARY_LIMIT}</span>
+                )}
+              </div>
+              <button className="bk-summary-view" onClick={() => setViewAll(true)}>
+                {kn ? `ಎಲ್ಲಾ ${itemCount} ನೋಡಿ` : `View all ${itemCount} items`} →
+              </button>
+            </>
           )}
         </aside>
 
@@ -783,6 +878,69 @@ function ReviewStep({
           </p>
         </form>
       </div>
+
+      {/* Full item list */}
+      {viewAll && (
+        <div className="mn-modal" onClick={() => setViewAll(false)} role="dialog" aria-modal="true">
+          <div className="mn-modal-panel" onClick={(e) => e.stopPropagation()}>
+            <div className="mn-modal-hd">
+              <span className="mn-modal-txt">
+                <h4>{kn ? 'ನಿಮ್ಮ ಆಯ್ಕೆ' : 'Your menu selection'}</h4>
+                <em>
+                  {itemCount} {kn ? 'ಭಕ್ಷ್ಯಗಳು' : 'items'} · {eventLabel}
+                </em>
+              </span>
+              <button
+                className="mn-modal-x"
+                onClick={() => setViewAll(false)}
+                aria-label={kn ? 'ಮುಚ್ಚಿ' : 'Close'}
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="mn-modal-list">
+              {allItems.map((it) => (
+                <div className="mn-cart-row" key={it.key}>
+                  {!it.isCustom && (
+                    <i className={it.isVeg ? 'fc-dot fc-dot-veg' : 'fc-dot fc-dot-nonveg'} />
+                  )}
+                  <span>{it.name}</span>
+                  {it.isCustom && (
+                    <em style={{ fontStyle: 'normal', fontSize: 11, opacity: 0.6 }}>
+                      {kn ? 'ವಿನಂತಿ' : 'requested'}
+                    </em>
+                  )}
+                  <button
+                    onClick={() => (it.isCustom ? onRemoveCustom(it.key) : onToggleDish(it.key))}
+                    aria-label={`${kn ? 'ತೆಗೆದುಹಾಕಿ' : 'Remove'} ${it.name}`}
+                    title={kn ? 'ತೆಗೆದುಹಾಕಿ' : 'Remove'}
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+
+              {allItems.length === 0 && (
+                <p className="mn-modal-empty">
+                  {kn
+                    ? 'ಯಾವುದೂ ಆಯ್ಕೆಯಾಗಿಲ್ಲ — ನಾವು ಮೆನು ಸಲಹೆ ನೀಡುತ್ತೇವೆ.'
+                    : "Nothing selected — we'll advise on the menu."}
+                </p>
+              )}
+            </div>
+
+            <div className="mn-modal-ft">
+              <button className="bk-btn bk-btn-ghost" onClick={onBack}>
+                {kn ? 'ಮೆನು ಬದಲಾಯಿಸಿ' : 'Edit menu'}
+              </button>
+              <button className="bk-btn bk-btn-primary" onClick={() => setViewAll(false)}>
+                {kn ? 'ಮುಗಿಯಿತು' : 'Done'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Sticky submit */}
       <div className="bk-bar">

@@ -1,7 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { Provider } from 'react-redux'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { store } from '@/store/store'
 import './index.css'
 import App from './App.tsx'
@@ -16,9 +16,11 @@ createRoot(document.getElementById('root')!).render(
     <Provider store={store}>
       <BrowserRouter>
         <Routes>
-          {/* Public site — no authentication */}
-          <Route path="/public" element={<PublicSitePage />} />
+          {/* Public site — the default landing page, no authentication */}
+          <Route path="/" element={<PublicSitePage />} />
           <Route path="/book" element={<BookingPage />} />
+          {/* Legacy path kept so existing links keep working */}
+          <Route path="/public" element={<Navigate to="/" replace />} />
 
           {/* Auth */}
           <Route path="/login" element={<LoginPage />} />
@@ -26,13 +28,16 @@ createRoot(document.getElementById('root')!).render(
 
           {/* Admin panel — requires a valid JWT */}
           <Route
-            path="/*"
+            path="/admin/*"
             element={
               <RequireAuth>
                 <App />
               </RequireAuth>
             }
           />
+
+          {/* Anything else falls back to the public site */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
     </Provider>

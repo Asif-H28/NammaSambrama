@@ -22,14 +22,14 @@ export function LoginPage() {
 
   // Already signed in — go straight to the panel
   useEffect(() => {
-    if (token) navigate('/', { replace: true })
+    if (token) navigate('/admin', { replace: true })
   }, [token, navigate])
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!username.trim() || !password) return
     const result = await dispatch(login({ username: username.trim(), password }))
-    if (login.fulfilled.match(result)) navigate('/', { replace: true })
+    if (login.fulfilled.match(result)) navigate('/admin', { replace: true })
   }
 
   return (
