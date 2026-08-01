@@ -9,6 +9,7 @@ export type Screen =
   | 'foods'
   | 'food-form'
   | 'payment'
+  | 'gallery'
   | 'public'
 
 export type IconKey =
@@ -109,3 +110,23 @@ export interface PaymentSettings {
   qrImageId?: string
   payeeName: string
 }
+
+export interface GalleryItem {
+  id: string
+  type: 'photo' | 'video'
+  title: string
+  description?: string
+  imageUrl?: string
+  imageId?: string
+  youtubeUrl?: string
+  youtubeId?: string
+  eventType?: string
+  showInPublic: boolean
+  createdAt?: string
+}
+
+export interface GalleryData {
+  enableGallery: boolean
+  items: GalleryItem[]
+}
+

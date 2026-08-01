@@ -7,6 +7,7 @@ const NAV = [
   { href: '/#events', en: 'Events', kn: 'ಈವೆಂಟ್‌ಗಳು' },
   { href: '/#menu', en: 'Menu', kn: 'ಮೆನು' },
   { href: '/#payment', en: 'Payment', kn: 'ಪಾವತಿ' },
+  { href: '/#gallery', en: 'Gallery', kn: 'ಗ್ಯಾಲರಿ' },
   { href: '/#contact', en: 'Contact', kn: 'ಸಂಪರ್ಕ' },
 ]
 

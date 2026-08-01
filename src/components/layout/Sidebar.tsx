@@ -4,7 +4,7 @@ import { logout } from '@/features/auth/authSlice'
 import { cn } from '@/lib/utils'
 import type { ThemeKey } from '@/types'
 
-type NavScreen = 'dashboard' | 'events' | 'foods' | 'payment' | 'public'
+type NavScreen = 'dashboard' | 'events' | 'foods' | 'payment' | 'gallery' | 'public'
 
 const THEMES: { key: ThemeKey; name: string; dot: string }[] = [
   { key: 'blurple', name: 'Nocturne Blurple', dot: 'linear-gradient(135deg,#9184d9 50%,#2b2741 50%)' },
@@ -16,6 +16,7 @@ const NAV_ITEMS: { screen: NavScreen; label: string; matches: string[] }[] = [
   { screen: 'events', label: 'Event Types', matches: ['events', 'event-form'] },
   { screen: 'foods', label: 'Food Categories', matches: ['foods', 'food-form'] },
   { screen: 'payment', label: 'Payment', matches: ['payment'] },
+  { screen: 'gallery', label: 'Gallery', matches: ['gallery'] },
   { screen: 'public', label: 'Public Site', matches: ['public'] },
 ]
 
@@ -65,6 +66,14 @@ function NavIcon({ screen }: { screen: NavScreen }) {
         <svg {...props}>
           <rect x="2" y="4" width="20" height="16" rx="2" />
           <path d="M7 15h0M2 9.5h20" />
+        </svg>
+      )
+    case 'gallery':
+      return (
+        <svg {...props}>
+          <rect x="3" y="3" width="18" height="18" rx="2" />
+          <circle cx="8.5" cy="8.5" r="1.5" />
+          <path d="m21 15-5-5L5 21" />
         </svg>
       )
   }

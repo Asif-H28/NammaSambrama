@@ -10,8 +10,10 @@ import { EventDetailDialog } from '@/components/layout/EventDetailDialog'
 import { PublicLoader } from '@/components/layout/PublicLoader'
 import { LazyImage } from '@/components/layout/LazyImage'
 import { PaymentQrSection } from '@/components/layout/PaymentQrSection'
+import { GallerySection } from '@/components/layout/GallerySection'
 import { fetchEvents, fetchFoods } from '@/features/catalog/catalogThunks'
 import { fetchPublicPayment } from '@/features/payment/paymentThunks'
+import { fetchPublicGallery } from '@/features/gallery/galleryThunks'
 import type { EventType, IconKey } from '@/types'
 
 const pill = (active: boolean) =>
@@ -184,6 +186,9 @@ export function PublicSite({ standalone = false }: { standalone?: boolean }) {
   const loading = useAppSelector((s) => s.catalog.loading)
   const paymentData = useAppSelector((s) => s.payment.data)
   const paymentLoaded = useAppSelector((s) => s.payment.loaded)
+  const enableGallery = useAppSelector((s) => s.gallery.enableGallery)
+  const galleryItems = useAppSelector((s) => s.gallery.items)
+  const galleryLoaded = useAppSelector((s) => s.gallery.loaded)
 
   // Which event's full detail dialog is open
   const [detail, setDetail] = useState<EventType | null>(null)
@@ -193,7 +198,8 @@ export function PublicSite({ standalone = false }: { standalone?: boolean }) {
     if (!eventsLoaded) dispatch(fetchEvents())
     if (!foodsLoaded) dispatch(fetchFoods())
     if (!paymentLoaded) dispatch(fetchPublicPayment())
-  }, [eventsLoaded, foodsLoaded, paymentLoaded, dispatch])
+    if (!galleryLoaded) dispatch(fetchPublicGallery())
+  }, [eventsLoaded, foodsLoaded, paymentLoaded, galleryLoaded, dispatch])
 
   const types: string[] = []
   events.forEach((e) => {
@@ -1021,6 +1027,11 @@ export function PublicSite({ standalone = false }: { standalone?: boolean }) {
               kn={kn}
             />
           })()}
+
+          {/* ══════════════ GALLERY ══════════════ */}
+          {enableGallery && galleryItems.some((it) => it.showInPublic !== false) && (
+            <GallerySection items={galleryItems} kn={kn} />
+          )}
 
           {/* ══════════════ CLOSING CTA ══════════════ */}
           <section
