@@ -141,7 +141,7 @@ export function GallerySettings() {
   return (
     <div className="animate-rise">
       {/* Page Header */}
-      <div className="flex items-end justify-between gap-4 flex-wrap mb-[22px]">
+      <div className="gal-head mb-[22px]">
         <div>
           <div
             className="text-[11px] uppercase font-semibold"
@@ -157,7 +157,7 @@ export function GallerySettings() {
 
         {/* Global Enable Gallery Switch */}
         <div
-          className="flex items-center gap-4 p-[12px_18px]"
+          className="gal-switch flex items-center gap-4 p-[12px_18px]"
           style={{
             borderRadius: 'var(--radius-lg)',
             background: 'var(--color-surface)',
@@ -165,7 +165,7 @@ export function GallerySettings() {
             boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
           }}
         >
-          <div className="text-right">
+          <div className="gal-switch-txt text-right">
             <div style={{ fontWeight: 600, fontSize: 13.5, color: 'var(--color-text)' }}>
               Enable Gallery in Public Page
             </div>
@@ -179,6 +179,7 @@ export function GallerySettings() {
             style={{
               width: 48,
               height: 26,
+              flex: 'none',
               borderRadius: 999,
               background: enableGallery ? 'var(--color-accent)' : 'var(--color-neutral-700)',
               position: 'relative',
@@ -206,10 +207,10 @@ export function GallerySettings() {
 
       {/* Tabs Bar */}
       <div
-        className="flex items-center justify-between gap-4 border-b mb-6"
+        className="gal-tabs border-b mb-6"
         style={{ borderColor: 'var(--color-divider)' }}
       >
-        <div className="flex gap-2">
+        <div className="gal-tablist">
           <button
             onClick={() => setActiveTab('photos')}
             className="flex items-center gap-2"
@@ -256,9 +257,10 @@ export function GallerySettings() {
 
         <button
           onClick={() => openAddModal(activeTab === 'photos' ? 'photo' : 'video')}
-          className="btn btn-primary flex items-center gap-2"
+          className="gal-add btn btn-primary flex items-center gap-2"
           style={{
             padding: '10px 18px',
+            whiteSpace: 'nowrap',
             fontSize: 13.5,
             fontWeight: 600,
             borderRadius: 'var(--radius-md)',
@@ -280,7 +282,7 @@ export function GallerySettings() {
         <div>
           {photos.length === 0 ? (
             <div
-              className="card text-center p-12"
+              className="gal-empty card text-center p-12"
               style={{ background: 'var(--color-surface)', border: '1px solid var(--color-divider)' }}
             >
               <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="mx-auto mb-3 opacity-40" style={{ color: 'var(--color-neutral-400)' }}>
@@ -387,7 +389,7 @@ export function GallerySettings() {
         <div>
           {videos.length === 0 ? (
             <div
-              className="card text-center p-12"
+              className="gal-empty card text-center p-12"
               style={{ background: 'var(--color-surface)', border: '1px solid var(--color-divider)' }}
             >
               <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="mx-auto mb-3 opacity-40" style={{ color: 'var(--color-neutral-400)' }}>

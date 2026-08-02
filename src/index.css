@@ -1071,15 +1071,6 @@ textarea.input { min-height: 90px; resize: vertical; }
   background: var(--p-gold);
 }
 
-@media (max-width: 640px) {
-  .pf-tabs {
-    display: flex;
-    width: 100%;
-    border-radius: 16px;
-    padding: 6px;
-  }
-  .pf-tab { flex: 1 1 auto; padding: 0 12px; min-height: 36px; font-size: 12.5px; }
-}
 
 .pf-subrow {
   display: flex;
@@ -1112,22 +1103,25 @@ textarea.input { min-height: 90px; resize: vertical; }
   color: var(--p-gold-light);
 }
 
-/* ── Mobile: single scrollable row instead of wrapping ── */
+/* ── Mobile: single scrollable row instead of wrapping ──
+   The rail stays a self-contained pill (no edge bleed), so its rounded
+   background is never clipped and the tabs keep a shared vertical centre. */
 @media (max-width: 720px) {
   .pf-tabs, .pf-subrow {
+    display: flex;
     flex-wrap: nowrap;
     justify-content: flex-start;
+    width: 100%;
+    max-width: 100%;
     overflow-x: auto;
     scroll-snap-type: x proximity;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
-    /* Bleed to the screen edges so it reads as scrollable */
-    margin-inline: -24px;
-    padding: 4px 24px;
   }
+  .pf-tabs { padding: 5px; }
   .pf-tabs::-webkit-scrollbar, .pf-subrow::-webkit-scrollbar { display: none; }
-  .pf-tab, .pf-sub { scroll-snap-align: start; flex: none; }
-  .pf-tab { padding: 9px 16px 9px 11px; font-size: 12.5px; }
+  .pf-tab, .pf-sub { scroll-snap-align: start; flex: 0 0 auto; }
+  .pf-tab { padding: 0 14px; min-height: 36px; font-size: 12.5px; }
   .pf-tab-ico { width: 26px; height: 26px; }
 }
 
@@ -4575,4 +4569,41 @@ textarea.input { min-height: 90px; resize: vertical; }
   .ev-expand-btn { transition: none !important; }
   .ev-calendarview.is-fullscreen,
   .ev-cardview.is-fullscreen { animation: none !important; }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Event Gallery (admin) — mobile layout
+   The page is built with inline styles sized for desktop; these
+   classes carry the responsive overrides so small screens stack
+   instead of squeezing the header switch and tab row.
+   ══════════════════════════════════════════════════════════════ */
+
+.gal-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.gal-tabs { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.gal-tablist { display: flex; gap: 8px; }
+
+@media (max-width: 720px) {
+  .gal-head { flex-direction: column; align-items: stretch; gap: 14px; }
+  .gal-head h2 { font-size: 22px !important; }
+  /* Switch card: label left, toggle right, full width */
+  .gal-switch { width: 100%; justify-content: space-between; padding: 12px 14px !important; }
+  .gal-switch .gal-switch-txt { text-align: left !important; }
+
+  .gal-tabs { flex-direction: column; align-items: stretch; gap: 0; }
+  /* Tabs scroll horizontally rather than wrapping under the CTA */
+  .gal-tablist {
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .gal-tablist::-webkit-scrollbar { display: none; }
+  .gal-tablist > button { flex: 0 0 auto; padding: 11px 14px !important; font-size: 13px !important; white-space: nowrap; }
+
+  /* CTA drops to its own full-width row below the tabs */
+  .gal-add { width: 100%; justify-content: center; margin: 12px 0 4px; }
+}
+
+@media (max-width: 480px) {
+  /* Empty-state cards: p-12 (48px) leaves too little room for the copy */
+  .gal-empty { padding: 32px 18px !important; }
 }
