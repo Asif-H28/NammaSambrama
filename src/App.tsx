@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useAppDispatch, useAppSelector } from '@/store/hooks'
+import { useAppSelector } from '@/store/hooks'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { Toast } from '@/components/layout/Toast'
 import { VideoDialog } from '@/components/layout/VideoDialog'

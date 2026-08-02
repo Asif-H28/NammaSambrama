@@ -23,7 +23,7 @@ export const store = configureStore({
     // The console now ships a single dark theme. Any previously persisted
     // theme/mode (e.g. 'blurple' + 'light') is ignored so old localStorage
     // values can't resurrect a palette that no longer exists.
-    ui: { ...uiReducer(undefined, { type: '@@INIT' }), theme: 'obsidian', mode: 'dark' },
+    ui: uiReducer(undefined, { type: '@@INIT' }),
   },
 })
 

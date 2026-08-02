@@ -65,10 +65,6 @@ export function PaymentSettings() {
     }
   }
 
-  const upiDeepLink = upiId.trim()
-    ? `upi://pay?pa=${encodeURIComponent(upiId.trim())}&pn=${encodeURIComponent(payeeName.trim() || 'Namma Sambrama')}`
-    : ''
-
   return (
     <div className="animate-rise">
       {/* Page header */}

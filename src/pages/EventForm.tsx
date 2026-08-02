@@ -17,7 +17,6 @@ import { embedUrl, videoHost } from '@/lib/embed'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { useImageUpload } from '@/hooks/useImageUpload'
-import { cn } from '@/lib/utils'
 
 export function EventForm() {
   const dispatch = useAppDispatch()
