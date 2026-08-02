@@ -1,6 +1,7 @@
-import { useMemo, useState } from 'react'
-import { useAppDispatch } from '@/store/hooks'
-import { updateEnquiryStatus } from '@/features/enquiries/enquiriesThunks'
+import { useEffect, useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
+import { useAppDispatch, useAppSelector } from '@/store/hooks'
+import { fetchEnquiries, updateEnquiryStatus } from '@/features/enquiries/enquiriesThunks'
 import type { Enquiry } from '@/types'
 
 const MONTH_NAMES = [
@@ -13,12 +14,6 @@ const STATUS_LABEL: Record<Enquiry['status'], string> = {
   new: 'New',
   contacted: 'Contacted',
   closed: 'Closed',
-}
-
-const STATUS_TAG: Record<Enquiry['status'], string> = {
-  new: 'tag-accent',
-  contacted: 'tag-accent-2',
-  closed: 'tag-neutral',
 }
 
 const STATUS_DOT: Record<Enquiry['status'], string> = {
@@ -41,23 +36,290 @@ function formatLongDate(dateStr: string) {
   return new Date(y, m - 1, d).toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
 }
 
+/** First letters of the contact name, for the chat avatar. */
+function initials(name: string) {
+  const parts = name.trim().split(/\s+/).filter(Boolean)
+  if (!parts.length) return '?'
+  return (parts[0][0] + (parts[1]?.[0] ?? '')).toUpperCase()
+}
+
+
+/**
+ * One booking rendered as a chat bubble. Shared by the day panel and the
+ * "View all" modal so both stay visually identical.
+ */
+function EnquiryBubble({
+  e,
+  onStatusChange,
+}: {
+  e: Enquiry
+  onStatusChange: (status: Enquiry['status']) => void
+}) {
+  return (
+    <div className="chat-row">
+      <div className="chat-avatar" aria-hidden="true">
+        {initials(e.contactName)}
+      </div>
+
+      <div className={`chat-bubble chat-bubble--${e.status}`}>
+        <div className="chat-bubble-top">
+          <span className="chat-name">{e.eventLabel}</span>
+          <select
+            className={`chat-status chat-status--${e.status}`}
+            value={e.status}
+            onChange={(ev) => onStatusChange(ev.target.value as Enquiry['status'])}
+          >
+            {(['new', 'contacted', 'closed'] as const).map((s) => (
+              <option key={s} value={s}>
+                {STATUS_LABEL[s]}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="chat-contact">
+          {e.contactName}
+          {e.contactPhone && <span className="chat-phone"> · {e.contactPhone}</span>}
+        </div>
+
+        <div className="chat-chips">
+          <span className="chat-chip">👥 {e.guestCount || '—'} guests</span>
+          <span className="chat-chip">🍽 {e.items.length} items</span>
+        </div>
+
+        {e.items.length > 0 && (
+          <div className="chat-menu">
+            <span className="chat-menu-label">Menu</span>
+            {e.items.map((it) => it.name).join(', ')}
+          </div>
+        )}
+
+        {e.contactNotes && <div className="chat-note">📝 {e.contactNotes}</div>}
+
+        <div className="chat-time">
+          {e.eventTime || '—'}
+          <svg viewBox="0 0 18 12" className="chat-ticks" aria-hidden="true">
+            <path d="M1 6.5 4.2 9.7 10 3.2" />
+            <path d="M7.6 6.7 10.4 9.7 16.4 3.2" />
+          </svg>
+        </div>
+
+        <span className="chat-tail" aria-hidden="true" />
+      </div>
+    </div>
+  )
+}
+
+
+/**
+ * Compact card used by the card view. Shows a few key fields; the expand
+ * button reveals every remaining detail of the booking.
+ */
+function EnquiryCard({
+  e,
+  expanded,
+  onToggle,
+  onStatusChange,
+}: {
+  e: Enquiry
+  expanded: boolean
+  onToggle: () => void
+  onStatusChange: (status: Enquiry['status']) => void
+}) {
+  return (
+    <div className={`ev-card ev-card--${e.status}${expanded ? ' is-open' : ''}`}>
+      <div className="ev-card-head">
+        <div className="ev-card-avatar" aria-hidden="true">
+          {initials(e.contactName)}
+        </div>
+        <div className="ev-card-headtext">
+          <div className="ev-card-title">{e.eventLabel}</div>
+          <div className="ev-card-contact">
+            {e.contactName}
+            {e.contactPhone && <span className="ev-card-phone"> · {e.contactPhone}</span>}
+          </div>
+        </div>
+        <select
+          className={`chat-status chat-status--${e.status} flex-none`}
+          value={e.status}
+          onChange={(ev) => onStatusChange(ev.target.value as Enquiry['status'])}
+          aria-label="Booking status"
+        >
+          {(['new', 'contacted', 'closed'] as const).map((s) => (
+            <option key={s} value={s}>
+              {STATUS_LABEL[s]}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Summary fields, always visible */}
+      <div className="ev-card-chips">
+        <span className="chat-chip">🕐 {e.eventTime || '—'}</span>
+        <span className="chat-chip">👥 {e.guestCount || '—'} guests</span>
+        <span className="chat-chip">🍽 {e.items.length} items</span>
+      </div>
+
+      {/* Full detail, revealed on expand */}
+      {expanded && (
+        <div className="ev-card-detail">
+          <div className="ev-card-grid">
+            <div>
+              <span className="ev-card-label">Date</span>
+              {e.eventDate ? formatLongDate(e.eventDate) : '—'}
+            </div>
+            <div>
+              <span className="ev-card-label">Time</span>
+              {e.eventTime || '—'}
+            </div>
+            <div>
+              <span className="ev-card-label">Guests</span>
+              {e.guestCount || '—'}
+            </div>
+            <div>
+              <span className="ev-card-label">Booked on</span>
+              {new Date(e.createdAt).toLocaleDateString('en-IN', {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric',
+              })}
+            </div>
+            <div style={{ gridColumn: '1 / -1' }}>
+              <span className="ev-card-label">Contact</span>
+              {e.contactName}
+              {e.contactPhone && ` · ${e.contactPhone}`}
+            </div>
+            <div style={{ gridColumn: '1 / -1' }}>
+              <span className="ev-card-label">Event type</span>
+              {e.eventLabel}
+              {e.isCustomEvent && <span className="ev-card-custom">custom</span>}
+            </div>
+          </div>
+
+          {e.items.length > 0 && (
+            <div className="ev-card-block">
+              <span className="ev-card-label">Menu · {e.items.length} items</span>
+              <div className="ev-card-items">
+                {e.items.map((it, i) => (
+                  <span key={`${it.name}-${i}`} className={`ev-item${it.isCustom ? ' is-custom' : ''}`}>
+                    {it.name}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {e.contactNotes && (
+            <div className="ev-card-block">
+              <span className="ev-card-label">Notes</span>
+              <div className="ev-card-notes">{e.contactNotes}</div>
+            </div>
+          )}
+        </div>
+      )}
+
+      <button className="ev-card-expand" onClick={onToggle} aria-expanded={expanded}>
+        {expanded ? 'Show less' : 'View details'}
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+          <path d="m6 9 6 6 6-6" />
+        </svg>
+      </button>
+    </div>
+  )
+}
+
 export function EventCalendar({ enquiries }: { enquiries: Enquiry[] }) {
   const dispatch = useAppDispatch()
+  const loading = useAppSelector((s) => s.enquiries.loading)
+  const theme = useAppSelector((s) => s.ui.theme)
+  const mode = useAppSelector((s) => s.ui.mode)
   const now = new Date()
   const [year, setYear] = useState(now.getFullYear())
   const [month, setMonth] = useState(now.getMonth())
   const [selectedDay, setSelectedDay] = useState<string | null>(null)
+  const [showAll, setShowAll] = useState(false)
+  const [view, setView] = useState<'calendar' | 'cards'>('calendar')
+  const [query, setQuery] = useState('')
+  const [fullscreen, setFullscreen] = useState(false)
+  const [statusFilter, setStatusFilter] = useState<'all' | Enquiry['status']>('all')
+  /** Ids of cards expanded to their full detail in card view. */
+  const [expanded, setExpanded] = useState<Set<string>>(new Set())
+
+  const toggleExpanded = (id: string) =>
+    setExpanded((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+
+  /**
+   * Search + status filter applied once at the source, so every surface
+   * (calendar dots, day panel, cards, modal) reflects the same result set.
+   */
+  const visible = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    return enquiries.filter((e) => {
+      if (statusFilter !== 'all' && e.status !== statusFilter) return false
+      if (!q) return true
+      return (
+        e.eventLabel.toLowerCase().includes(q) ||
+        e.contactName.toLowerCase().includes(q) ||
+        e.contactPhone.toLowerCase().includes(q) ||
+        e.items.some((it) => it.name.toLowerCase().includes(q))
+      )
+    })
+  }, [enquiries, query, statusFilter])
+
+  // Escape closes the topmost layer: the View-all modal first, then
+  // fullscreen. Without the modal check, one press would dismiss both.
+  useEffect(() => {
+    if (!fullscreen && !showAll) return
+    const onKey = (ev: KeyboardEvent) => {
+      if (ev.key !== 'Escape') return
+      if (showAll) setShowAll(false)
+      else setFullscreen(false)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [fullscreen, showAll])
+
+  // The page behind the fullscreen panel must not scroll. The panel is
+  // portalled to <body>, outside .app-shell where data-theme lives, so mirror
+  // those attributes onto <html> — without them the portal inherits none of
+  // the --color-* tokens and renders unstyled.
+  useEffect(() => {
+    if (!fullscreen) return
+    const root = document.documentElement
+    const prevOverflow = document.body.style.overflow
+    const prevTheme = root.getAttribute('data-theme')
+    const prevMode = root.getAttribute('data-mode')
+    document.body.style.overflow = 'hidden'
+    root.setAttribute('data-theme', theme)
+    root.setAttribute('data-mode', mode)
+    return () => {
+      document.body.style.overflow = prevOverflow
+      if (prevTheme === null) root.removeAttribute('data-theme')
+      else root.setAttribute('data-theme', prevTheme)
+      if (prevMode === null) root.removeAttribute('data-mode')
+      else root.setAttribute('data-mode', prevMode)
+    }
+  }, [fullscreen, theme, mode])
 
   const byDate = useMemo(() => {
     const map = new Map<string, Enquiry[]>()
-    enquiries.forEach((e) => {
+    visible.forEach((e) => {
       if (!e.eventDate) return
       const list = map.get(e.eventDate) ?? []
       list.push(e)
       map.set(e.eventDate, list)
     })
+    // Chronological within a day, so the schedule reads top to bottom.
+    map.forEach((list) => list.sort((a, b) => (a.eventTime || '').localeCompare(b.eventTime || '')))
     return map
-  }, [enquiries])
+  }, [visible])
+
+  const isFiltering = query.trim() !== '' || statusFilter !== 'all'
 
   const goPrevMonth = () => {
     setSelectedDay(null)
@@ -104,100 +366,315 @@ export function EventCalendar({ enquiries }: { enquiries: Enquiry[] }) {
   }, [byDate, year, month, daysInMonth, firstWeekday])
 
   const monthEventCount = monthEnquiries.length
-  const monthNewCount = monthEnquiries.filter((e) => e.status === 'new').length
-  const monthContactedCount = monthEnquiries.filter((e) => e.status === 'contacted').length
-  const monthClosedCount = monthEnquiries.filter((e) => e.status === 'closed').length
+
+  /**
+   * Counts for the status chips. Derived from the search-filtered but
+   * status-UNfiltered set: if these followed the active status filter, every
+   * other chip would read 0 and look disabled.
+   */
+  const chipCounts = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    const prefix = `${year}-${String(month + 1).padStart(2, '0')}`
+    const inScope = enquiries.filter((e) => {
+      if (!e.eventDate || !e.eventDate.startsWith(prefix)) return false
+      if (!q) return true
+      return (
+        e.eventLabel.toLowerCase().includes(q) ||
+        e.contactName.toLowerCase().includes(q) ||
+        e.contactPhone.toLowerCase().includes(q) ||
+        e.items.some((it) => it.name.toLowerCase().includes(q))
+      )
+    })
+    return {
+      all: inScope.length,
+      new: inScope.filter((e) => e.status === 'new').length,
+      contacted: inScope.filter((e) => e.status === 'contacted').length,
+      closed: inScope.filter((e) => e.status === 'closed').length,
+    }
+  }, [enquiries, query, year, month])
 
   const selectedEnquiries = selectedDay ? byDate.get(selectedDay) ?? [] : []
 
-  return (
-    <div
-      className="app-split calendar-shell grid gap-[18px] items-stretch"
-      style={{ gridTemplateColumns: 'minmax(0,1.4fr) minmax(280px,1fr)' }}
-    >
-      <div
-        className="card elev-sm p-[20px] gap-[16px]"
-        style={{ background: 'linear-gradient(160deg,var(--color-surface),var(--color-neutral-900) 130%)' }}
+  /** Every booking this month, grouped by date and sorted chronologically. */
+  const monthGrouped = useMemo(() => {
+    const groups = new Map<string, Enquiry[]>()
+    cells.forEach((day) => {
+      if (day === null) return
+      const key = ymd(year, month, day)
+      const list = byDate.get(key)
+      if (list && list.length) groups.set(key, list)
+    })
+    return [...groups.entries()].sort(([a], [b]) => a.localeCompare(b))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [byDate, year, month, daysInMonth, firstWeekday])
+
+  /** Month stepper + Today, shared by both views so navigation never moves. */
+  const dateNav = (
+    <div className="ev-nav">
+      <button className="ev-nav-arrow" aria-label="Previous month" onClick={goPrevMonth}>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="m15 18-6-6 6-6" />
+        </svg>
+      </button>
+      <div className="ev-nav-label">
+        <span className="ev-nav-month">{MONTH_NAMES[month]}</span>
+        <span className="ev-nav-year">{year}</span>
+      </div>
+      <button className="ev-nav-arrow" aria-label="Next month" onClick={goNextMonth}>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="m9 18 6-6-6-6" />
+        </svg>
+      </button>
+      <button className="ev-nav-today" onClick={goToday}>
+        Today
+      </button>
+    </div>
+  )
+
+  /** Search, status filter and refresh — identical in both views. */
+  const toolbar = (
+    <div className="ev-toolbar">
+      <div className="ev-search">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+          <circle cx="11" cy="11" r="7" />
+          <path d="m20 20-3.2-3.2" />
+        </svg>
+        <input
+          value={query}
+          onChange={(ev) => setQuery(ev.target.value)}
+          placeholder="Search event, name, phone or dish…"
+          aria-label="Search bookings"
+        />
+        {query && (
+          <button className="ev-search-clear" onClick={() => setQuery('')} aria-label="Clear search">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+              <path d="M18 6 6 18M6 6l12 12" />
+            </svg>
+          </button>
+        )}
+      </div>
+
+      <div className="ev-filters" role="group" aria-label="Filter by status">
+        {(['all', 'new', 'contacted', 'closed'] as const).map((s) => (
+          <button
+            key={s}
+            className={`ev-filter${statusFilter === s ? ' is-active' : ''}`}
+            onClick={() => setStatusFilter(s)}
+            aria-pressed={statusFilter === s}
+          >
+            {s !== 'all' && <i style={{ background: STATUS_DOT[s] }} />}
+            {s === 'all' ? 'All' : STATUS_LABEL[s]}
+            <span className="ev-filter-n">{chipCounts[s]}</span>
+          </button>
+        ))}
+      </div>
+
+      <button
+        className={`cal-refresh${loading ? ' is-busy' : ''}`}
+        onClick={() => dispatch(fetchEnquiries())}
+        disabled={loading}
+        aria-label="Refresh bookings"
       >
-        <div className="flex items-center justify-between gap-2 flex-wrap">
-          <div>
-            <h5 className="m-0" style={{ fontSize: 19 }}>
-              {MONTH_NAMES[month]} {year}
-            </h5>
-            <div className="flex items-center gap-[10px] flex-wrap" style={{ marginTop: 4 }}>
-              <span
-                className="tag"
-                style={{ background: 'color-mix(in srgb,var(--color-accent) 16%,transparent)', color: 'var(--color-accent-300)', fontWeight: 600 }}
-              >
-                {monthEventCount} booked
-              </span>
-              {monthEventCount > 0 && (
-                <span className="text-muted" style={{ fontSize: 11.5 }}>
-                  {monthNewCount} new · {monthContactedCount} contacted · {monthClosedCount} closed
-                </span>
-              )}
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M21 12a9 9 0 1 1-2.64-6.36" />
+          <path d="M21 3v6h-6" />
+        </svg>
+        <span>{loading ? 'Syncing…' : 'Refresh'}</span>
+      </button>
+    </div>
+  )
+
+  const expandBtn = (
+    <button
+      className="ev-expand-btn"
+      onClick={() => setFullscreen((v) => !v)}
+      title={fullscreen ? 'Exit fullscreen (Esc)' : 'Expand to fullscreen'}
+      aria-label={fullscreen ? 'Exit fullscreen' : 'Expand to fullscreen'}
+      aria-pressed={fullscreen}
+    >
+      {fullscreen ? (
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M9 3v6H3M15 3v6h6M9 21v-6H3M15 21v-6h6" />
+        </svg>
+      ) : (
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M3 9V3h6M21 9V3h-6M3 15v6h6M21 15v6h-6" />
+        </svg>
+      )}
+      <span>{fullscreen ? 'Exit' : 'Expand'}</span>
+    </button>
+  )
+
+  const tabs = (
+    <div className="ev-tabs" role="tablist" aria-label="Bookings view">
+      <button
+        role="tab"
+        aria-selected={view === 'calendar'}
+        className={`ev-tab${view === 'calendar' ? ' is-active' : ''}`}
+        onClick={() => setView('calendar')}
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="3" y="5" width="18" height="16" rx="2" />
+          <path d="M3 10h18M8 3v4M16 3v4" />
+        </svg>
+        Calendar
+      </button>
+      <button
+        role="tab"
+        aria-selected={view === 'cards'}
+        className={`ev-tab${view === 'cards' ? ' is-active' : ''}`}
+        onClick={() => setView('cards')}
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="3" y="4" width="18" height="7" rx="1.8" />
+          <rect x="3" y="13" width="18" height="7" rx="1.8" />
+        </svg>
+        Cards
+        {monthEventCount > 0 && <span className="ev-tab-count">{monthEventCount}</span>}
+      </button>
+    </div>
+  )
+
+  if (view === 'cards') {
+    // A date chosen in calendar view can point outside the month shown here,
+    // so fall back to "All" unless it belongs to the visible month.
+    const monthPrefix = `${year}-${String(month + 1).padStart(2, '0')}`
+    const activeDay = selectedDay && selectedDay.startsWith(monthPrefix) ? selectedDay : null
+
+    const cardView = (
+      <div className={`ev-cardview${fullscreen ? ' is-fullscreen' : ''}`}>
+        <div className="ev-topbar">
+          <div className="ev-topbar-left">
+            {tabs}
+            {expandBtn}
+          </div>
+        </div>
+
+        {/* One shared header: nav on the left, tools on the right */}
+        <div className="ev-header">
+          {dateNav}
+          {toolbar}
+        </div>
+
+        {/* Day filter — only days that actually have bookings */}
+        {monthGrouped.length > 0 && (
+          <div className="ev-daystrip">
+            <button
+              className={`ev-daypill${activeDay === null ? ' is-active' : ''}`}
+              onClick={() => setSelectedDay(null)}
+            >
+              <span className="ev-daypill-wd">All</span>
+              <span className="ev-daypill-count">{monthEventCount}</span>
+            </button>
+            {monthGrouped.map(([date, list]) => {
+              const dayNum = Number(date.slice(-2))
+              const weekday = WEEKDAYS[new Date(year, month, dayNum).getDay()]
+              const isToday = date === today
+              return (
+                <button
+                  key={date}
+                  className={`ev-daypill${activeDay === date ? ' is-active' : ''}${isToday ? ' is-today' : ''}`}
+                  onClick={() => setSelectedDay(activeDay === date ? null : date)}
+                >
+                  <span className="ev-daypill-wd">{weekday}</span>
+                  <span className="ev-daypill-day">{dayNum}</span>
+                  <span className="ev-daypill-count">{list.length}</span>
+                </button>
+              )
+            })}
+          </div>
+        )}
+
+        {/* Cards */}
+        {monthEventCount === 0 ? (
+          <div className="ev-empty">
+            <div className="chat-empty-icon">{isFiltering ? '🔍' : '📭'}</div>
+            <div className="chat-empty-text">
+              {isFiltering
+                ? `No bookings match your filters in ${MONTH_NAMES[month]} ${year}.`
+                : `No bookings in ${MONTH_NAMES[month]} ${year}.`}
             </div>
+            {isFiltering && (
+              <button
+                className="ev-clear-filters"
+                onClick={() => {
+                  setQuery('')
+                  setStatusFilter('all')
+                }}
+              >
+                Clear filters
+              </button>
+            )}
           </div>
-          <div className="flex items-center gap-[6px] flex-wrap">
-            <button className="btn btn-secondary" style={{ fontSize: 12, padding: '6px 12px' }} onClick={goToday}>
-              Today
+        ) : (
+          (activeDay ? [[activeDay, byDate.get(activeDay) ?? []] as const] : monthGrouped).map(
+            ([date, list]) => (
+              <div key={date} className="ev-group">
+                <div className="ev-group-head">
+                  <span className="ev-group-date">{formatLongDate(date)}</span>
+                  <span className="ev-group-count">
+                    {list.length} event{list.length === 1 ? '' : 's'}
+                  </span>
+                </div>
+                <div className="ev-grid">
+                  {list.map((e) => (
+                    <EnquiryCard
+                      key={e.id}
+                      e={e}
+                      expanded={expanded.has(e.id)}
+                      onToggle={() => toggleExpanded(e.id)}
+                      onStatusChange={(status) => dispatch(updateEnquiryStatus({ id: e.id, status }))}
+                    />
+                  ))}
+                </div>
+              </div>
+            ),
+          )
+        )}
+      </div>
+    )
+
+    // Fullscreen renders through a portal: .app-shell sets `isolation:
+    // isolate`, which traps any z-index inside it and would keep the sidebar
+    // painted over a fixed-position descendant.
+    return fullscreen ? createPortal(cardView, document.body) : cardView
+  }
+
+  const calendarView = (
+    <div className={`ev-calendarview${fullscreen ? ' is-fullscreen' : ''}`}>
+      <div className="ev-topbar">
+        <div className="ev-topbar-left">
+          {tabs}
+          {expandBtn}
+        </div>
+        {dateNav}
+      </div>
+      {toolbar}
+      <div
+        className="app-split calendar-shell grid gap-[18px] items-stretch"
+        style={{ gridTemplateColumns: 'minmax(0,1.4fr) minmax(300px,1fr)' }}
+      >
+      {/* ── Calendar ── */}
+      <div className="cal-card">
+        <div className="cal-head">
+          <span className="cal-head-count">
+            {monthEventCount === 0
+              ? isFiltering
+                ? 'No matches this month'
+                : 'Nothing booked this month'
+              : `${monthEventCount} booking${monthEventCount === 1 ? '' : 's'}`}
+          </span>
+          {monthEventCount > 0 && (
+            <button className="cal-viewall" onClick={() => setShowAll(true)}>
+              View all
+              <span className="cal-viewall-count">{monthEventCount}</span>
             </button>
-            <button
-              className="btn btn-secondary btn-icon"
-              aria-label="Previous month"
-              onClick={goPrevMonth}
-              style={{ width: 32, height: 32 }}
-            >
-              ‹
-            </button>
-            <select
-              value={month}
-              onChange={(e) => {
-                setMonth(Number(e.target.value))
-                setSelectedDay(null)
-              }}
-              className="input"
-              style={{ padding: '6px 8px', minHeight: 32, fontSize: 12.5, width: 'auto' }}
-            >
-              {MONTH_NAMES.map((name, i) => (
-                <option key={name} value={i}>
-                  {name}
-                </option>
-              ))}
-            </select>
-            <select
-              value={year}
-              onChange={(e) => {
-                setYear(Number(e.target.value))
-                setSelectedDay(null)
-              }}
-              className="input"
-              style={{ padding: '6px 8px', minHeight: 32, fontSize: 12.5, width: 'auto' }}
-            >
-              {Array.from({ length: 8 }, (_, i) => now.getFullYear() - 2 + i).map((y) => (
-                <option key={y} value={y}>
-                  {y}
-                </option>
-              ))}
-            </select>
-            <button
-              className="btn btn-secondary btn-icon"
-              aria-label="Next month"
-              onClick={goNextMonth}
-              style={{ width: 32, height: 32 }}
-            >
-              ›
-            </button>
-          </div>
+          )}
         </div>
 
         <div className="calendar-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 6 }}>
           {WEEKDAYS.map((w) => (
-            <div
-              key={w}
-              className="text-center uppercase"
-              style={{ fontSize: 10.5, letterSpacing: '.08em', color: 'var(--color-neutral-500)', padding: '2px 0 8px', fontWeight: 600 }}
-            >
+            <div key={w} className="cal-weekday">
               {w}
             </div>
           ))}
@@ -207,57 +684,42 @@ export function EventCalendar({ enquiries }: { enquiries: Enquiry[] }) {
             const dayEnquiries = byDate.get(dateKey) ?? []
             const isToday = dateKey === today
             const isSelected = dateKey === selectedDay
-            const hasEvents = dayEnquiries.length > 0
+            const count = dayEnquiries.length
+            const hasEvents = count > 0
+            // Dominant status drives the cell's accent colour.
+            const lead = dayEnquiries.some((e) => e.status === 'new')
+              ? 'new'
+              : dayEnquiries.some((e) => e.status === 'contacted')
+                ? 'contacted'
+                : 'closed'
+
             return (
               <button
                 key={dateKey}
                 onClick={() => setSelectedDay(isSelected ? null : dateKey)}
-                className="calendar-cell flex flex-col items-center justify-center"
-                style={{
-                  aspectRatio: '1',
-                  width: '100%',
-                  borderRadius: 12,
-                  cursor: 'pointer',
-                  transition: 'transform .12s ease, box-shadow .12s ease',
-                  border: isSelected
-                    ? '2px solid var(--color-accent)'
-                    : isToday
-                      ? '1.5px solid color-mix(in srgb,var(--color-accent) 55%,transparent)'
-                      : '1px solid transparent',
-                  background: isSelected
-                    ? 'linear-gradient(160deg,color-mix(in srgb,var(--color-accent) 30%,transparent),color-mix(in srgb,var(--color-accent) 12%,transparent))'
-                    : hasEvents
-                      ? 'var(--color-neutral-900)'
-                      : 'transparent',
-                  boxShadow: isSelected ? '0 6px 16px -8px color-mix(in srgb,var(--color-accent) 60%,transparent)' : 'none',
-                }}
+                className={[
+                  'cal-cell',
+                  hasEvents && 'has-events',
+                  isToday && 'is-today',
+                  isSelected && 'is-selected',
+                ]
+                  .filter(Boolean)
+                  .join(' ')}
+                style={{ ['--cell-tone' as string]: STATUS_DOT[lead] }}
+                aria-label={
+                  hasEvents ? `${day}: ${count} event${count === 1 ? '' : 's'}` : String(day)
+                }
               >
-                <span
-                  style={{
-                    fontSize: 13.5,
-                    fontWeight: isToday || isSelected ? 700 : 500,
-                    color: isSelected ? 'var(--color-accent-100)' : isToday ? 'var(--color-accent-300)' : 'var(--color-text)',
-                  }}
-                >
-                  {day}
-                </span>
+                <span className="cal-cell-num">{day}</span>
+
+                {/* Count badge for multi-event days */}
+                {count > 1 && <span className="cal-cell-badge">{count}</span>}
+
                 {hasEvents && (
-                  <span
-                    className="flex items-center gap-[3px]"
-                    style={{ marginTop: 3 }}
-                    aria-label={`${dayEnquiries.length} event${dayEnquiries.length === 1 ? '' : 's'}`}
-                  >
-                    {dayEnquiries.slice(0, 4).map((e) => (
-                      <span
-                        key={e.id}
-                        style={{ width: 5.5, height: 5.5, borderRadius: '50%', background: STATUS_DOT[e.status] }}
-                      />
+                  <span className="cal-cell-dots">
+                    {dayEnquiries.slice(0, 3).map((e) => (
+                      <span key={e.id} style={{ background: STATUS_DOT[e.status] }} />
                     ))}
-                    {dayEnquiries.length > 4 && (
-                      <span style={{ fontSize: 8.5, color: 'var(--color-neutral-500)', fontWeight: 700 }}>
-                        +{dayEnquiries.length - 4}
-                      </span>
-                    )}
                   </span>
                 )}
               </button>
@@ -275,129 +737,112 @@ export function EventCalendar({ enquiries }: { enquiries: Enquiry[] }) {
         </div>
       </div>
 
-      <div className="card elev-sm p-[18px] gap-[12px]" style={{ height: '100%', minHeight: 320, overflow: 'hidden' }}>
+      {/* ── Day detail: WhatsApp-style conversation ── */}
+      <div className="chat-panel">
         {!selectedDay ? (
-          <div className="flex flex-col items-center justify-center text-center gap-[8px]" style={{ padding: '40px 12px', flex: 1 }}>
-            <div
-              className="grid place-items-center"
-              style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--color-neutral-900)', fontSize: 20 }}
-            >
-              📅
+          <div className="chat-empty">
+            <div className="chat-empty-icon">💬</div>
+            <div className="chat-empty-text">
+              Pick a date to see its bookings.
+              {monthEventCount > 0 && ' Highlighted days already have events.'}
             </div>
-            <div className="text-[13.5px]" style={{ color: 'var(--color-neutral-400)' }}>
-              Select a date on the calendar to see its events.
-            </div>
+            {monthGrouped.length > 0 && (
+              <button className="ev-jump" onClick={() => setSelectedDay(monthGrouped[0][0])}>
+                Jump to first booking
+              </button>
+            )}
           </div>
         ) : (
           <>
-            <div>
-              <h5 className="m-0" style={{ fontSize: 15.5 }}>
-                {formatLongDate(selectedDay)}
-              </h5>
-              <div className="text-muted" style={{ fontSize: 12, marginTop: 2 }}>
-                {selectedEnquiries.length === 0
-                  ? 'No events on this date'
-                  : `${selectedEnquiries.length} event${selectedEnquiries.length === 1 ? '' : 's'}`}
+            <div className="chat-head">
+              <div className="chat-head-avatar">{selectedDay.slice(-2)}</div>
+              <div className="min-w-0">
+                <div className="chat-head-title">{formatLongDate(selectedDay)}</div>
+                <div className="chat-head-sub">
+                  {selectedEnquiries.length === 0
+                    ? 'No events on this date'
+                    : `${selectedEnquiries.length} event${selectedEnquiries.length === 1 ? '' : 's'}`}
+                </div>
               </div>
             </div>
 
-            <div
-              className="calendar-day-list flex flex-col gap-[10px]"
-              style={{ flex: 1, minHeight: 0, overflowY: 'auto', paddingRight: 4 }}
-            >
+            <div className="chat-thread calendar-day-list">
               {selectedEnquiries.length === 0 && (
-                <div className="text-muted text-[13px]" style={{ padding: '8px 0' }}>
-                  Nothing booked for this day yet.
-                </div>
+                <div className="chat-daystamp">Nothing booked for this day yet</div>
               )}
-              {selectedEnquiries.map((e) => (
-                <div
-                  key={e.id}
-                  className="flex flex-col gap-[10px]"
-                  style={{
-                    padding: '14px 16px',
-                    borderRadius: 12,
-                    background: 'var(--color-neutral-900)',
-                    border: '1px solid var(--color-divider)',
-                  }}
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <div className="font-semibold" style={{ fontSize: 14.5 }}>
-                        {e.eventLabel}
-                      </div>
-                      {e.eventTime && (
-                        <div className="text-muted" style={{ fontSize: 12 }}>
-                          🕐 {e.eventTime}
-                        </div>
-                      )}
-                    </div>
-                    <select
-                      className={`tag ${STATUS_TAG[e.status]} flex-none`}
-                      style={{ border: 0, cursor: 'pointer', font: 'inherit' }}
-                      value={e.status}
-                      onChange={(ev) => dispatch(updateEnquiryStatus({ id: e.id, status: ev.target.value as Enquiry['status'] }))}
-                    >
-                      {(['new', 'contacted', 'closed'] as const).map((s) => (
-                        <option key={s} value={s}>
-                          {STATUS_LABEL[s]}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
 
-                  <div
-                    className="grid gap-[8px] text-[12.5px]"
-                    style={{ gridTemplateColumns: '1fr 1fr', paddingTop: 10, borderTop: '1px solid var(--color-divider)' }}
-                  >
-                    <div>
-                      <div className="text-muted" style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '.06em' }}>
-                        Guests
-                      </div>
-                      <div>{e.guestCount || '—'}</div>
-                    </div>
-                    <div>
-                      <div className="text-muted" style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '.06em' }}>
-                        Items
-                      </div>
-                      <div>{e.items.length}</div>
-                    </div>
-                    <div style={{ gridColumn: '1 / -1' }}>
-                      <div className="text-muted" style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '.06em' }}>
-                        Contact
-                      </div>
-                      <div>{e.contactName}</div>
-                      <div className="text-muted" style={{ fontSize: 11.5 }}>
-                        {e.contactPhone}
-                      </div>
-                    </div>
-                    {e.items.length > 0 && (
-                      <div style={{ gridColumn: '1 / -1' }}>
-                        <div className="text-muted" style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '.06em' }}>
-                          Menu
-                        </div>
-                        <div className="text-muted" style={{ fontSize: 12, lineHeight: 1.5 }}>
-                          {e.items.map((it) => it.name).join(', ')}
-                        </div>
-                      </div>
-                    )}
-                    {e.contactNotes && (
-                      <div style={{ gridColumn: '1 / -1' }}>
-                        <div className="text-muted" style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '.06em' }}>
-                          Notes
-                        </div>
-                        <div className="text-muted" style={{ fontSize: 12, lineHeight: 1.5 }}>
-                          {e.contactNotes}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
+              {selectedEnquiries.length > 0 && (
+                <div className="chat-daystamp">{formatLongDate(selectedDay)}</div>
+              )}
+
+              {selectedEnquiries.map((e) => (
+                <EnquiryBubble
+                  key={e.id}
+                  e={e}
+                  onStatusChange={(status) => dispatch(updateEnquiryStatus({ id: e.id, status }))}
+                />
               ))}
             </div>
           </>
         )}
       </div>
+
+      </div>
+
+      {/* ── View-all modal: every booking this month ── */}
+      {showAll && (
+        <div
+          className="cal-modal-backdrop"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="cal-modal-title"
+          onClick={() => setShowAll(false)}
+        >
+          <div className="cal-modal" onClick={(ev) => ev.stopPropagation()}>
+            <div className="cal-modal-head">
+              <div className="min-w-0">
+                <h5 id="cal-modal-title" className="cal-modal-title">
+                  {MONTH_NAMES[month]} {year}
+                </h5>
+                <div className="cal-modal-sub">
+                  {monthEventCount} booking{monthEventCount === 1 ? '' : 's'} ·{' '}
+                  {monthGrouped.length} day{monthGrouped.length === 1 ? '' : 's'}
+                </div>
+              </div>
+              <button
+                className="cal-modal-close"
+                onClick={() => setShowAll(false)}
+                aria-label="Close"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <path d="M18 6 6 18M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="cal-modal-body chat-thread">
+              {monthGrouped.map(([date, list]) => (
+                <div key={date} className="cal-modal-group">
+                  <div className="chat-daystamp">
+                    {formatLongDate(date)} · {list.length}
+                  </div>
+                  {list.map((e) => (
+                    <EnquiryBubble
+                      key={e.id}
+                      e={e}
+                      onStatusChange={(status) =>
+                        dispatch(updateEnquiryStatus({ id: e.id, status }))
+                      }
+                    />
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
+
+  return fullscreen ? createPortal(calendarView, document.body) : calendarView
 }

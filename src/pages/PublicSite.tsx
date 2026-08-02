@@ -545,17 +545,14 @@ export function PublicSite({ standalone = false }: { standalone?: boolean }) {
             </div>
 
             {activeGroups.length > 0 && (
-              <div style={{ marginBottom: 28 }}>
+              <div style={{ marginBottom: 28, textAlign: 'center' }}>
                 {/* Primary: grouped category tabs */}
-                <div className="ev-tabs">
+                <div className="pf-tabs">
                   <button
-                    className={`ev-tab ${publicFilter === 'all' ? 'is-active' : ''}`}
+                    className={`pf-tab ${publicFilter === 'all' ? 'is-active' : ''}`}
                     onClick={() => dispatch(setPublicFilter('all'))}
                   >
-                    <span className="ev-tab-ico">
-                      <NSLogo size={19} showRing={false} />
-                    </span>
-                    <span className="ev-tab-txt">
+                    <span className="pf-tab-txt">
                       {kn ? 'ಎಲ್ಲಾ' : 'All'}
                       <b>{events.length}</b>
                     </span>
@@ -564,13 +561,10 @@ export function PublicSite({ standalone = false }: { standalone?: boolean }) {
                   {activeGroups.map((g) => (
                     <button
                       key={g.key}
-                      className={`ev-tab ${publicFilter === g.key ? 'is-active' : ''}`}
+                      className={`pf-tab ${publicFilter === g.key ? 'is-active' : ''}`}
                       onClick={() => dispatch(setPublicFilter(g.key))}
                     >
-                      <span className="ev-tab-ico">
-                        <EventIcon name={g.icon} />
-                      </span>
-                      <span className="ev-tab-txt">
+                      <span className="pf-tab-txt">
                         {kn ? g.kn : g.en}
                         <b>{g.count}</b>
                       </span>
@@ -580,11 +574,11 @@ export function PublicSite({ standalone = false }: { standalone?: boolean }) {
 
                 {/* Secondary: specific types within the chosen group */}
                 {subTypes.length > 1 && (
-                  <div className="ev-subrow">
+                  <div className="pf-subrow">
                     {subTypes.map((ty) => (
                       <button
                         key={ty}
-                        className="ev-sub"
+                        className="pf-sub"
                         onClick={() => dispatch(setPublicFilter(ty))}
                       >
                         {t(ty)}
@@ -595,8 +589,8 @@ export function PublicSite({ standalone = false }: { standalone?: boolean }) {
 
                 {/* Breadcrumb when a single type is selected */}
                 {!isGroupFilter && publicFilter !== 'all' && (
-                  <div className="ev-subrow">
-                    <button className="ev-sub is-active" onClick={() => dispatch(setPublicFilter('all'))}>
+                  <div className="pf-subrow">
+                    <button className="pf-sub is-active" onClick={() => dispatch(setPublicFilter('all'))}>
                       {t(publicFilter)} <span style={{ opacity: 0.6, marginLeft: 4 }}>×</span>
                     </button>
                   </div>

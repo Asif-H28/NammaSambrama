@@ -7,23 +7,6 @@ import enquiriesReducer from '@/features/enquiries/enquiriesSlice'
 import authReducer from '@/features/auth/authSlice'
 import paymentReducer from '@/features/payment/paymentSlice'
 import galleryReducer from '@/features/gallery/gallerySlice'
-import type { ThemeKey, ThemeMode } from '@/types'
-
-const THEME_KEY = 'namma-sambrama:theme'
-
-// Catalog and enquiries are no longer cached in localStorage — MongoDB is the
-// source of truth and the slices fetch on mount. Only local UI preferences
-// are persisted.
-function loadTheme(): { theme: ThemeKey; mode: ThemeMode } | undefined {
-  try {
-    const raw = localStorage.getItem(THEME_KEY)
-    return raw ? JSON.parse(raw) : undefined
-  } catch {
-    return undefined
-  }
-}
-
-const savedTheme = loadTheme()
 
 export const store = configureStore({
   reducer: {
@@ -37,20 +20,11 @@ export const store = configureStore({
     gallery: galleryReducer,
   },
   preloadedState: {
-    ui: { ...uiReducer(undefined, { type: '@@INIT' }), ...savedTheme },
+    // The console now ships a single dark theme. Any previously persisted
+    // theme/mode (e.g. 'blurple' + 'light') is ignored so old localStorage
+    // values can't resurrect a palette that no longer exists.
+    ui: { ...uiReducer(undefined, { type: '@@INIT' }), theme: 'obsidian', mode: 'dark' },
   },
-})
-
-store.subscribe(() => {
-  const state = store.getState()
-  try {
-    localStorage.setItem(
-      THEME_KEY,
-      JSON.stringify({ theme: state.ui.theme, mode: state.ui.mode }),
-    )
-  } catch {
-    // ignore quota/storage errors
-  }
 })
 
 export type RootState = ReturnType<typeof store.getState>

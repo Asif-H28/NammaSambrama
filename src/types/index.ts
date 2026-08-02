@@ -1,6 +1,8 @@
-export type ThemeKey = 'blurple' | 'emerald'
+/** The console ships a single dark theme. */
+export type ThemeKey = 'obsidian'
 export type ThemeMode = 'light' | 'dark'
-export type Layout = 'stacked' | 'split' | 'steps'
+/** The event form ships a single split layout. */
+export type Layout = 'split'
 export type FormSection = 'basics' | 'media' | 'food' | 'design'
 export type Screen =
   | 'dashboard'

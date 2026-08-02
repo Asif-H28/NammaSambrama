@@ -1,10 +1,80 @@
 import { useEffect } from 'react'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
-import { goScreen } from '@/features/ui/uiSlice'
-import { startEvent, startFood } from '@/features/forms/formsSlice'
 import { EventCalendar } from '@/components/dashboard/EventCalendar'
 import { fetchEvents, fetchFoods } from '@/features/catalog/catalogThunks'
 import { fetchEnquiries } from '@/features/enquiries/enquiriesThunks'
+
+type StatTone = 'accent' | 'accent-2' | 'veg' | 'neutral'
+
+function StatIcon({ name }: { name: string }) {
+  const props = {
+    width: 18,
+    height: 18,
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 1.7,
+    strokeLinecap: 'round' as const,
+    strokeLinejoin: 'round' as const,
+  }
+  switch (name) {
+    case 'inbox':
+      return (
+        <svg {...props}>
+          <path d="M22 12h-6l-2 3h-4l-2-3H2" />
+          <path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z" />
+        </svg>
+      )
+    case 'calendar':
+      return (
+        <svg {...props}>
+          <rect x="3" y="5" width="18" height="16" rx="2" />
+          <path d="M3 10h18M8 3v4M16 3v4" />
+        </svg>
+      )
+    case 'cuisine':
+      return (
+        <svg {...props}>
+          <path d="M6 3v8a2 2 0 0 0 2 2v8M6 3v18M18 3c-2 0-3 2-3 5s1 4 3 4v10" />
+        </svg>
+      )
+    default:
+      return (
+        <svg {...props}>
+          <path d="M12 3a9 9 0 1 0 9 9H12V3z" />
+          <path d="M15.5 3.5A9 9 0 0 1 20.5 8.5" />
+        </svg>
+      )
+  }
+}
+
+function StatTile({
+  kicker,
+  value,
+  meta,
+  icon,
+  tone,
+}: {
+  kicker: string
+  value: number
+  meta: string
+  icon: string
+  tone: StatTone
+}) {
+  return (
+    <div className={`dash-stat dash-stat--${tone}`}>
+      <div className="dash-stat-top">
+        <span className="dash-stat-kicker">{kicker}</span>
+        <span className="dash-stat-icon">
+          <StatIcon name={icon} />
+        </span>
+      </div>
+      <div className="dash-stat-value">{value}</div>
+      <div className="dash-stat-meta">{meta}</div>
+      <span className="dash-stat-glow" aria-hidden="true" />
+    </div>
+  )
+}
 
 export function Dashboard() {
   const dispatch = useAppDispatch()
@@ -26,68 +96,47 @@ export function Dashboard() {
   const newEnquiries = enquiries.filter((e) => e.status === 'new').length
 
   return (
-    <div className="animate-rise">
-      <div className="flex items-end justify-between gap-4 flex-wrap mb-[22px]">
-        <div>
-          <div className="text-[11px] uppercase" style={{ letterSpacing: '.12em', color: 'var(--color-accent)' }}>
-            Overview
-          </div>
-          <h2 style={{ margin: '4px 0 2px', fontSize: 30 }}>Good evening, Suresh</h2>
-          <p className="text-muted m-0 text-[13px]">
-            Everything you publish here appears on the customer site immediately.
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <button
-            className="btn btn-secondary"
-            onClick={() => {
-              dispatch(startFood())
-              dispatch(goScreen('food-form'))
-            }}
-          >
-            + Food category
-          </button>
-          <button
-            className="btn btn-primary"
-            onClick={() => {
-              dispatch(startEvent())
-              dispatch(goScreen('event-form'))
-            }}
-          >
-            + Event type
-          </button>
-        </div>
-      </div>
+    <div className="animate-rise dash">
+      {/* ── Stats ── */}
+      <section className="dash-stats">
+        <StatTile
+          kicker="New enquiries"
+          value={newEnquiries}
+          meta={`${enquiries.length} total, all time`}
+          icon="inbox"
+          tone="accent"
+        />
+        <StatTile
+          kicker="Event types"
+          value={events.length}
+          meta="live on the public grid"
+          icon="calendar"
+          tone="accent-2"
+        />
+        <StatTile
+          kicker="Food categories"
+          value={foods.length}
+          meta="cuisines in the menu"
+          icon="cuisine"
+          tone="neutral"
+        />
+        <StatTile
+          kicker="Dishes"
+          value={totalDishes}
+          meta={`${countVeg} pure veg`}
+          icon="dish"
+          tone="veg"
+        />
+      </section>
 
-      <div className="grid gap-[14px]" style={{ gridTemplateColumns: 'repeat(auto-fit,minmax(190px,1fr))' }}>
-        <div
-          className="card elev-sm gap-[6px] p-[16px]"
-          style={{ background: 'linear-gradient(160deg,var(--color-accent-900),var(--color-surface) 65%)' }}
-        >
-          <div className="card-kicker">New enquiries</div>
-          <div style={{ font: '500 34px/1 var(--font-heading)' }}>{newEnquiries}</div>
-          <div className="card-meta">{enquiries.length} total, all time</div>
+      {/* ── Calendar ── */}
+      <section className="dash-panel">
+        <div className="dash-panel-head">
+          <h3 className="dash-panel-title">Bookings calendar</h3>
+          <span className="dash-panel-hint">Select a date to see its events</span>
         </div>
-        <div className="card elev-sm gap-[6px] p-[16px]">
-          <div className="card-kicker">Event types</div>
-          <div style={{ font: '500 34px/1 var(--font-heading)' }}>{events.length}</div>
-          <div className="card-meta">live on the public grid</div>
-        </div>
-        <div className="card elev-sm gap-[6px] p-[16px]">
-          <div className="card-kicker">Food categories</div>
-          <div style={{ font: '500 34px/1 var(--font-heading)' }}>{foods.length}</div>
-          <div className="card-meta">cuisines in the menu</div>
-        </div>
-        <div className="card elev-sm gap-[6px] p-[16px]">
-          <div className="card-kicker">Dishes</div>
-          <div style={{ font: '500 34px/1 var(--font-heading)' }}>{totalDishes}</div>
-          <div className="card-meta">{countVeg} pure veg</div>
-        </div>
-      </div>
-
-      <div className="mt-4">
         <EventCalendar enquiries={enquiries} />
-      </div>
+      </section>
     </div>
   )
 }

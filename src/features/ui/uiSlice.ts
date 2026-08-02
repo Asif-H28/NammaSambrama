@@ -23,9 +23,9 @@ interface UiState {
 
 const initialState: UiState = {
   screen: 'dashboard',
-  layout: 'steps',
+  layout: 'split',
   section: 'basics',
-  theme: 'blurple',
+  theme: 'obsidian',
   mode: 'dark',
   query: '',
   diet: 'all',
@@ -45,9 +45,10 @@ const uiSlice = createSlice({
       state.previewOpen = false
       state.validate = false
     },
-    setLayout(state, action: PayloadAction<Layout>) {
-      state.layout = action.payload
-      if (action.payload === 'steps') state.section = 'basics'
+    // The form ships a single split layout; kept as a no-op so any
+    // remaining dispatch stays harmless.
+    setLayout(state) {
+      state.layout = 'split'
     },
     setSection(state, action: PayloadAction<FormSection>) {
       state.section = action.payload
@@ -55,8 +56,10 @@ const uiSlice = createSlice({
     setTheme(state, action: PayloadAction<ThemeKey>) {
       state.theme = action.payload
     },
+    // The console ships a single dark theme, so mode is pinned to 'dark'.
+    // Kept as a no-op reducer so any remaining dispatch stays harmless.
     toggleMode(state) {
-      state.mode = state.mode === 'dark' ? 'light' : 'dark'
+      state.mode = 'dark'
     },
     setQuery(state, action: PayloadAction<string>) {
       state.query = action.payload

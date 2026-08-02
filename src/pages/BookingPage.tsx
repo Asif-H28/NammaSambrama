@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import {
   chooseEventType,
@@ -25,6 +26,7 @@ import { usePublicLanguage } from '@/hooks/usePublicLanguage'
 import { PublicHeader } from '@/components/layout/PublicHeader'
 import { PublicLoader } from '@/components/layout/PublicLoader'
 import { Toast } from '@/components/layout/Toast'
+import { BookingSuccessModal } from '@/components/booking/BookingSuccessModal'
 
 /** Items shown in the review summary before "View all" opens the full list. */
 const SUMMARY_LIMIT = 6
@@ -37,6 +39,7 @@ const STEPS = [
 
 export function BookingPage() {
   const dispatch = useAppDispatch()
+  const navigate = useNavigate()
   const events = useAppSelector((s) => s.catalog.events)
   const foods = useAppSelector((s) => s.catalog.foods)
   const booking = useAppSelector((s) => s.booking)
@@ -44,6 +47,11 @@ export function BookingPage() {
   const [addingFor, setAddingFor] = useState<string | null>(null)
   const [newItemName, setNewItemName] = useState('')
   const [pendingTarget, setPendingTarget] = useState<string | null>(null)
+  // Captured at submit time: resetBooking() clears the store, so the modal
+  // needs its own copy of what was just booked.
+  const [successInfo, setSuccessInfo] = useState<{ eventLabel: string; contactName: string } | null>(
+    null,
+  )
   const theme = useAppSelector((s) => s.ui.theme)
   const mode = useAppSelector((s) => s.ui.mode)
   const eventsLoaded = useAppSelector((s) => s.catalog.eventsLoaded)
@@ -187,7 +195,11 @@ export function BookingPage() {
     }
 
     clearBookingDraft()
-    dispatch(showToast(lang === 'kn' ? '🎉 ನಿಮ್ಮ ವಿನಂತಿ ಸಲ್ಲಿಸಲಾಗಿದೆ!' : '🎉 Your enquiry has been submitted!'))
+    // Snapshot the details before resetBooking() wipes them, then celebrate.
+    setSuccessInfo({
+      eventLabel,
+      contactName: booking.contactName.trim(),
+    })
     dispatch(resetBooking())
   }
 
@@ -264,6 +276,19 @@ export function BookingPage() {
       )}
 
       <Toast />
+
+      <BookingSuccessModal
+        open={successInfo !== null}
+        lang={lang}
+        eventLabel={successInfo?.eventLabel ?? ''}
+        contactName={successInfo?.contactName ?? ''}
+        onClose={() => {
+          setSuccessInfo(null)
+          // Send the customer back to the public site once they dismiss
+          // the celebration.
+          navigate('/')
+        }}
+      />
     </div>
   )
 }

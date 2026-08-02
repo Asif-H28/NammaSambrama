@@ -1,15 +1,10 @@
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
-import { goScreen, setTheme } from '@/features/ui/uiSlice'
+import { goScreen } from '@/features/ui/uiSlice'
 import { logout } from '@/features/auth/authSlice'
 import { cn } from '@/lib/utils'
-import type { ThemeKey } from '@/types'
+import { NSLogo } from '@/components/brand/NSLogo'
 
 type NavScreen = 'dashboard' | 'events' | 'foods' | 'payment' | 'gallery' | 'settings' | 'public'
-
-const THEMES: { key: ThemeKey; name: string; dot: string }[] = [
-  { key: 'blurple', name: 'Nocturne Blurple', dot: 'linear-gradient(135deg,#9184d9 50%,#2b2741 50%)' },
-  { key: 'emerald', name: 'Emerald Estate', dot: 'linear-gradient(135deg,#35b47e 50%,#113a2a 50%)' },
-]
 
 const NAV_ITEMS: { screen: NavScreen; label: string; matches: string[] }[] = [
   { screen: 'dashboard', label: 'Dashboard', matches: ['dashboard'] },
@@ -100,7 +95,6 @@ export function Sidebar({
 }) {
   const dispatch = useAppDispatch()
   const screen = useAppSelector((s) => s.ui.screen)
-  const theme = useAppSelector((s) => s.ui.theme)
   const admin = useAppSelector((s) => s.auth.admin)
 
   const go = (screenKey: Parameters<typeof goScreen>[0]) => {
@@ -130,18 +124,8 @@ export function Sidebar({
       }}
     >
       <div className="app-side-brand flex items-center gap-[10px] px-2 pt-1">
-        <div
-          className="flex-none grid place-items-center"
-          style={{
-            width: 34,
-            height: 34,
-            borderRadius: 10,
-            background: 'linear-gradient(150deg,var(--color-accent-500),var(--color-accent-700))',
-            font: "700 15px/1 'Noto Sans Kannada',sans-serif",
-            color: 'var(--color-accent-100)',
-          }}
-        >
-          ನ
+        <div className="flex-none">
+          <NSLogo size={34} />
         </div>
         {!collapsed && (
           <div className="min-w-0 flex-1">
@@ -209,43 +193,6 @@ export function Sidebar({
           ),
         )}
       </nav>
-
-      {!collapsed && (
-        <div
-          className="flex flex-col gap-[8px] p-[11px]"
-          style={{ borderRadius: 'var(--radius-md)', background: 'var(--color-surface)' }}
-        >
-          <div
-            className="text-[10px] uppercase"
-            style={{ letterSpacing: '.14em', color: 'var(--color-neutral-500)' }}
-          >
-            Theme
-          </div>
-          <div className="flex gap-[7px]">
-            {THEMES.map((t) => (
-              <button
-                key={t.key}
-                title={t.name}
-                onClick={() => dispatch(setTheme(t.key))}
-                style={{
-                  width: 28,
-                  height: 28,
-                  borderRadius: 9,
-                  cursor: 'pointer',
-                  background: t.dot,
-                  border: `2px solid ${theme === t.key ? 'var(--color-accent)' : 'transparent'}`,
-                  boxShadow:
-                    'var(--color-divider) 0 0 0 1px' +
-                    (theme === t.key ? ', color-mix(in srgb,var(--color-accent) 22%,transparent) 0 0 0 4px' : ''),
-                }}
-              />
-            ))}
-          </div>
-          <div className="text-[11px] leading-tight" style={{ color: 'var(--color-neutral-400)' }}>
-            {THEMES.find((t) => t.key === theme)?.name}
-          </div>
-        </div>
-      )}
 
       <button
         onClick={onToggleCollapse}

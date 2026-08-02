@@ -1,5 +1,5 @@
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
-import { goScreen, setLayout, setSection, openPreview } from '@/features/ui/uiSlice'
+import { goScreen, openPreview } from '@/features/ui/uiSlice'
 import {
   patchEvent,
   setEventIcon,
@@ -18,20 +18,10 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { useImageUpload } from '@/hooks/useImageUpload'
 import { cn } from '@/lib/utils'
-import type { FormSection, Layout } from '@/types'
-
-const SECTIONS: { key: FormSection; label: string; num: number }[] = [
-  { key: 'basics', label: 'Basics', num: 1 },
-  { key: 'media', label: 'Media', num: 2 },
-  { key: 'food', label: 'Food menu', num: 3 },
-  { key: 'design', label: 'Event design', num: 4 },
-]
 
 export function EventForm() {
   const dispatch = useAppDispatch()
   const f = useAppSelector((s) => s.forms.event)
-  const layout = useAppSelector((s) => s.ui.layout)
-  const section = useAppSelector((s) => s.ui.section)
   const validate = useAppSelector((s) => s.ui.validate)
   const saving = useAppSelector((s) => s.catalog.saving)
   const { uploadImage, uploading } = useImageUpload()
@@ -39,20 +29,23 @@ export function EventForm() {
   const err = validate ? eventErrors(f) : {}
   const hasErrors = validate && Object.keys(err).length > 0
 
-  const showBasics = layout !== 'steps' || section === 'basics'
-  const showMedia = layout !== 'steps' || section === 'media'
-  const showFood = layout !== 'steps' || section === 'food'
-  const showDesign = layout !== 'steps' || section === 'design'
+  // Split layout shows every section at once.
+  const showBasics = true
+  const showMedia = true
+  const showFood = true
+  const showDesign = true
 
   const errStyle = (bad?: boolean): React.CSSProperties =>
     bad
       ? { borderColor: 'var(--t-danger-bd)', background: 'color-mix(in srgb,var(--t-danger-bd) 14%,transparent)' }
       : {}
 
-  const formGridStyle: React.CSSProperties =
-    layout === 'split'
-      ? { display: 'grid', gridTemplateColumns: 'minmax(0,1.45fr) minmax(0,1fr)', gap: 14, alignItems: 'start' }
-      : { display: 'flex', flexDirection: 'column', gap: 14, maxWidth: 760 }
+  const formGridStyle: React.CSSProperties = {
+    display: 'grid',
+    gridTemplateColumns: 'minmax(0,1.45fr) minmax(0,1fr)',
+    gap: 14,
+    alignItems: 'start',
+  }
 
   const previewArt = f.eventImage
     ? `center/cover no-repeat url(${f.eventImage})`
@@ -80,23 +73,6 @@ export function EventForm() {
           </h2>
         </div>
         <div className="flex gap-2 items-center flex-wrap">
-          <span className="text-[11px] uppercase" style={{ letterSpacing: '.1em', color: 'var(--color-neutral-500)' }}>
-            Layout
-          </span>
-          <div className="seg">
-            {(['stacked', 'split', 'steps'] as Layout[]).map((l) => (
-              <label key={l} className={cn('seg-opt', layout === l && 'is-active')}>
-                <input
-                  type="radio"
-                  name="lay"
-                  className="sr-only"
-                  checked={layout === l}
-                  onChange={() => dispatch(setLayout(l))}
-                />
-                {l[0].toUpperCase() + l.slice(1)}
-              </label>
-            ))}
-          </div>
           <button className="btn btn-secondary" onClick={() => dispatch(openPreview())}>
             Preview
           </button>
@@ -109,32 +85,6 @@ export function EventForm() {
           </button>
         </div>
       </div>
-
-      {layout === 'steps' && (
-        <div
-          className="flex gap-[6px] flex-wrap mb-[16px] pb-[14px]"
-          style={{ borderBottom: '1px solid var(--color-divider)' }}
-        >
-          {SECTIONS.map((s) => (
-            <button
-              key={s.key}
-              onClick={() => dispatch(setSection(s.key))}
-              style={{
-                font: '500 13px/1 var(--font-heading)',
-                padding: '8px 14px',
-                borderRadius: 999,
-                cursor: 'pointer',
-                border: `1px solid ${section === s.key ? 'var(--color-accent)' : 'var(--color-divider)'}`,
-                background:
-                  section === s.key ? 'color-mix(in srgb, var(--color-accent) 14%, transparent)' : 'transparent',
-                color: section === s.key ? 'var(--color-accent-300)' : 'var(--color-neutral-300)',
-              }}
-            >
-              {s.num} · {s.label}
-            </button>
-          ))}
-        </div>
-      )}
 
       {hasErrors && (
         <div
@@ -466,7 +416,7 @@ export function EventForm() {
             </section>
           )}
 
-          {layout === 'split' && (
+          {(
             <section
               className="card elev-sm p-[14px] gap-[10px]"
               style={{ background: 'linear-gradient(160deg,var(--color-section),var(--color-surface) 70%)' }}
